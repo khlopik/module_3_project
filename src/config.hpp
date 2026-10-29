@@ -18,6 +18,7 @@ namespace servo {
     constexpr uint32_t minPulseWidthUs = 500;
     constexpr uint32_t maxPulseWidthUs = 2500;
     constexpr uint32_t periodUs = 20000;
+    constexpr uint16_t maxAngle = 180;
     
 }
 

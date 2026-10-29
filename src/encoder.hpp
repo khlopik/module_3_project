@@ -3,5 +3,6 @@
 
 void encoderInit();
 int getEncoderCount();
+void encoderReset();
 
 #endif // ENCODER_HPP

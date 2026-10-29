@@ -18,7 +18,7 @@ void servoInit()
     channelConfig.gpio_num = servo::pin;
     channelConfig.speed_mode = LEDC_LOW_SPEED_MODE;
     channelConfig.channel = servo::channel;
-    channelConfig.intr_type = LEDC_INTR_DISABLE;
+    // channelConfig.intr_type = LEDC_INTR_DISABLE; // ToDo: Remove if works
     channelConfig.timer_sel = servo::timer;
     channelConfig.duty = 0;
     channelConfig.hpoint = 0;
@@ -29,7 +29,7 @@ void servoInit()
 
 void servoSetAngle(int16_t angle)
 {
-    angle = angle > 180 ? 180 : (angle < 0 ? 0 : angle);
+    angle = 180 - (angle > 180 ? 180 : (angle < 0 ? 0 : angle));
 
     uint32_t pulseWidthUs = servo::minPulseWidthUs + ((servo::maxPulseWidthUs - servo::minPulseWidthUs) * angle) / 180;
     uint32_t duty = (pulseWidthUs * (1 << servo::resolutionBits)) / servo::periodUs;

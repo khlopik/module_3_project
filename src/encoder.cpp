@@ -61,3 +61,8 @@ int getEncoderCount()
     ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &value));
     return value / 4; // Divide by 4 to get the actual count in quadrature mode
 }
+
+void encoderReset()
+{
+    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+}

@@ -17,7 +17,7 @@ void buzzerInit()
     channelConfig.gpio_num = buzzer::pin;
     channelConfig.speed_mode = LEDC_LOW_SPEED_MODE;
     channelConfig.channel = buzzer::channel;
-    channelConfig.intr_type = LEDC_INTR_DISABLE;
+    // channelConfig.intr_type = LEDC_INTR_DISABLE; // ToDo: Remove if works
     channelConfig.timer_sel = buzzer::timer;
     channelConfig.duty = 0;
     channelConfig.hpoint = 0;
@@ -26,9 +26,9 @@ void buzzerInit()
     ledc_channel_config(&channelConfig);
 }
 
-void playNote(int note, int durationMs)
+void playNote(uint16_t frequency, uint16_t durationMs)
 {
-    ledc_set_freq(LEDC_LOW_SPEED_MODE, LEDC_TIMER_1, 440);
+    ledc_set_freq(LEDC_LOW_SPEED_MODE, LEDC_TIMER_1, frequency);
     ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 512);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
     // Implement the logic to play a note using a buzzer
