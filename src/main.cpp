@@ -93,6 +93,10 @@ void loop()
 {
     while (true)
     {
+        if (consumeAddNodeRequest())
+        {
+            currentState = SaveNoteToMelody;
+        }
         const uint32_t currentTimeMs = xTaskGetTickCount() * portTICK_PERIOD_MS;
         switch (currentState)
         {

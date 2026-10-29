@@ -1,10 +1,50 @@
 #include "config.hpp"
 #include "driver/pulse_cnt.h"
+#include "iot_button.h"
+#include "button_gpio.h"
 #include "esp_log.h"
 
 pcnt_unit_handle_t pcnt_unit = NULL;
 pcnt_channel_handle_t pcnt_channel_0 = NULL;
 pcnt_channel_handle_t pcnt_channel_1 = NULL;
+
+static volatile bool addNotePending = false;
+
+bool consumeAddNodeRequest()
+{
+    const bool addNote = addNotePending;
+    addNotePending = false;
+
+    return addNote;
+}
+
+static void onClick(void *arg, void *data)
+{
+    ESP_LOGI("ENCODER", "Button single click!");
+    addNotePending = true;
+}
+
+static void onLongPress(void *arg, void *data)
+{
+    ESP_LOGI("ENCODER", "Button long press!");
+}
+
+void configButton()
+{
+    button_config_t btnConfig = {};
+    btnConfig.long_press_time = 1000;
+    btnConfig.short_press_time = 50;
+
+    button_gpio_config_t btnGpioConfig = {};
+    btnGpioConfig.gpio_num = pin::encoderButton;
+    btnGpioConfig.active_level = 0;
+    btnGpioConfig.disable_pull = false;
+
+    button_handle_t btn = nullptr;
+    ESP_ERROR_CHECK(iot_button_new_gpio_device(&btnConfig, &btnGpioConfig, &btn));
+    ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_SINGLE_CLICK, NULL, onClick, NULL));
+    ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, NULL, onLongPress, NULL));
+}
 
 void encoderInit()
 {
@@ -22,13 +62,11 @@ void encoderInit()
 
     ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_0, &pcnt_channel_0));
     ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_0,
-        PCNT_CHANNEL_EDGE_ACTION_DECREASE,
-        PCNT_CHANNEL_EDGE_ACTION_INCREASE
-    ));
+                                                 PCNT_CHANNEL_EDGE_ACTION_DECREASE,
+                                                 PCNT_CHANNEL_EDGE_ACTION_INCREASE));
     ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_0,
-        PCNT_CHANNEL_LEVEL_ACTION_KEEP,
-        PCNT_CHANNEL_LEVEL_ACTION_INVERSE
-    ));
+                                                  PCNT_CHANNEL_LEVEL_ACTION_KEEP,
+                                                  PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
 
     pcnt_chan_config_t chan_config_1 = {};
     chan_config_1.edge_gpio_num = encoder::pinB;
@@ -36,13 +74,11 @@ void encoderInit()
 
     ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_1, &pcnt_channel_1));
     ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_1,
-        PCNT_CHANNEL_EDGE_ACTION_INCREASE,
-        PCNT_CHANNEL_EDGE_ACTION_DECREASE
-    ));
+                                                 PCNT_CHANNEL_EDGE_ACTION_INCREASE,
+                                                 PCNT_CHANNEL_EDGE_ACTION_DECREASE));
     ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_1,
-        PCNT_CHANNEL_LEVEL_ACTION_KEEP,
-        PCNT_CHANNEL_LEVEL_ACTION_INVERSE
-    ));
+                                                  PCNT_CHANNEL_LEVEL_ACTION_KEEP,
+                                                  PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
 
     pcnt_glitch_filter_config_t filter_config = {
         .max_glitch_ns = encoder::maxGlitchNs,
@@ -53,10 +89,12 @@ void encoderInit()
     ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
 
     ESP_LOGI("ENCODER", "PCNT X4 Quadrature Mode Initialized");
+
+    configButton();
 }
 
 int getEncoderCount()
-{   
+{
     int value;
     ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &value));
     return value / 4; // Divide by 4 to get the actual count in quadrature mode

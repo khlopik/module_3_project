@@ -7,6 +7,7 @@
 
 namespace pin {
     constexpr gpio_num_t servo = GPIO_NUM_12;
+    constexpr gpio_num_t encoderButton = GPIO_NUM_15;
 }
 
 namespace servo {
