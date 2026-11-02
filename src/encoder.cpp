@@ -10,7 +10,7 @@ pcnt_channel_handle_t pcnt_channel_1 = NULL;
 
 static volatile bool addNotePending = false;
 
-bool consumeAddNodeRequest()
+bool consumeAddNoteRequest()
 {
     const bool addNote = addNotePending;
     addNotePending = false;

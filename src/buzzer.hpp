@@ -1,10 +1,7 @@
-#ifndef BUZZER_HPP
-#define BUZZER_HPP
+#pragma once
 
 #include <cstdint>
 
 void buzzerInit();
-void playNote(uint16_t frequency, uint16_t durationMs);
+void playNote(uint16_t frequency);
 void stopNote();
-
-#endif // BUZZER_HPP

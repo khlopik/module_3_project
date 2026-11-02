@@ -8,7 +8,7 @@ void buzzerInit()
     timerConfig.speed_mode = LEDC_LOW_SPEED_MODE;
     timerConfig.duty_resolution = buzzer::resolutionBits;
     timerConfig.timer_num = buzzer::timer;
-    timerConfig.freq_hz = 440; // ToDo: replace with const
+    timerConfig.freq_hz = buzzer::timerFrequencyHz;
     timerConfig.clk_cfg = LEDC_AUTO_CLK;
 
     ledc_timer_config(&timerConfig);
@@ -26,18 +26,15 @@ void buzzerInit()
     ledc_channel_config(&channelConfig);
 }
 
-void playNote(uint16_t frequency, uint16_t durationMs)
+void playNote(uint16_t frequency)
 {
-    ledc_set_freq(LEDC_LOW_SPEED_MODE, LEDC_TIMER_1, frequency);
-    ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 512);
-    ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
-    // Implement the logic to play a note using a buzzer
-    // This is a placeholder implementation
-    // You can use PWM or other methods to generate sound
+    ledc_set_freq(LEDC_LOW_SPEED_MODE, buzzer::timer, frequency);
+    ledc_set_duty(LEDC_LOW_SPEED_MODE, buzzer::channel, buzzer::dutyCycle);
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, buzzer::channel);
 }
 
 void stopNote()
 {
-    ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0);
-    ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
+    ledc_set_duty(LEDC_LOW_SPEED_MODE, buzzer::channel, 0);
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, buzzer::channel);
 }

@@ -1,6 +1,6 @@
-#ifndef GPIO_HPP
-#define GPIO_HPP
+#pragma once
 
 void gpioInit();
-
-#endif // GPIO_HPP
+bool consumeChangeDurationRequest();
+bool consumePlayMelodyRequest();
+bool consumeResetMelodyRequest();

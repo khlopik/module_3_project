@@ -3,34 +3,16 @@
 #include "servo.hpp"
 #include "buzzer.hpp"
 #include "encoder.hpp"
+#include "melody.hpp"
+#include "duration_leds.hpp"
 #include "freertos/FreeRTOS.h"
 #include "esp_log.h"
 
-namespace note
-{
-    constexpr uint16_t C4 = 262;
-    constexpr uint16_t D4 = 294;
-    constexpr uint16_t E4 = 330;
-    constexpr uint16_t F4 = 349;
-    constexpr uint16_t G4 = 392;
-    constexpr uint16_t A4 = 440;
-    constexpr uint16_t B4 = 494;
-    constexpr uint16_t C5 = 523;
-    constexpr uint16_t rest = 0;
-}
+constexpr uint16_t tones[] = {tone::C4, tone::D4, tone::E4, tone::F4, tone::G4, tone::A4, tone::B4, tone::C5, tone::rest};
+constexpr int toneCount = sizeof(tones) / sizeof(tones[0]);
 
-namespace duration
-{
-    constexpr uint16_t half = 800;
-    constexpr uint16_t quarter = 400;
-    constexpr uint16_t eighth = 200;
-}
-
-constexpr uint16_t notes[] = {note::C4, note::D4, note::E4, note::F4, note::G4, note::A4, note::B4, note::C5, note::rest};
-constexpr int noteCount = sizeof(notes) / sizeof(notes[0]);
-
-constexpr uint16_t durations[] = {duration::half, duration::quarter, duration::eighth};
-constexpr int durationCount = sizeof(durations) / sizeof(durations[0]);
+// constexpr uint16_t durations[] = {duration::half, duration::quarter, duration::eighth};
+// constexpr int durationCount = sizeof(durations) / sizeof(durations[0]);
 
 int currentNoteIndex = -1;
 uint16_t currentDurationIndex = 0;
@@ -38,7 +20,7 @@ uint32_t lastNotePlayedMs = 0;
 
 inline uint16_t getAngleForNoteIndex(uint16_t noteIndex)
 {
-    return noteIndex * servo::maxAngle / (noteCount - 1);
+    return noteIndex * servo::maxAngle / (toneCount - 1);
 }
 
 enum State
@@ -51,28 +33,76 @@ enum State
 };
 
 State currentState = SelectNote;
+Melody currentMelody;
+DurationLeds durationLeds;
+
+void handleButtonPress()
+{
+    if (consumePlayMelodyRequest())
+    {
+        if (currentState == PlayMelody)
+        {
+            currentState = StopMelody;
+        }
+        else
+        {
+            currentState = PlayMelody;
+        }
+        return;
+    }
+
+    if (consumeResetMelodyRequest())
+    {
+        currentMelody.clearMelody();
+        currentState = SelectNote;
+        currentNoteIndex = -1;
+        currentDurationIndex = 0;
+        durationLeds.showDuration(currentDurationIndex);
+        return;
+    }
+
+    if (consumeChangeDurationRequest())
+    {
+        if (currentState != SelectNote && currentState != PreviewPlayNote)
+        {
+            return;
+        }
+        currentDurationIndex = (currentDurationIndex + 1) % durationCount;
+        durationLeds.showDuration(currentDurationIndex);
+        ESP_LOGI("DURATION", "New duration index: %d", currentDurationIndex);
+    }
+
+    if (consumeAddNoteRequest())
+    {
+        if (currentState != SelectNote && currentState != PreviewPlayNote)
+        {
+            return;
+        }
+        currentState = SaveNoteToMelody;
+    }
+}
 
 void handleNoteChange(uint32_t currentTimeMs)
 {
     int count = getEncoderCount();
 
-    const int newNoteIndex = ((count % noteCount) + noteCount) % noteCount;
+    const int newNoteIndex = ((count % toneCount) + toneCount) % toneCount;
 
     if (newNoteIndex != currentNoteIndex)
     {
         ESP_LOGI("ENCODER", "newNoteIndex: %d", newNoteIndex);
         currentNoteIndex = newNoteIndex;
-        uint16_t frequency = notes[currentNoteIndex];
+        uint16_t frequency = tones[currentNoteIndex];
         uint16_t angle = getAngleForNoteIndex(currentNoteIndex);
         ESP_LOGI("SERVO", "angle: %d", angle);
         servoSetAngle(angle);
-        if (frequency == note::rest)
+        if (frequency == tone::rest)
         {
             stopNote();
         }
         else
         {
-            playNote(frequency, currentDurationIndex);
+            playNote(frequency);
         }
 
         lastNotePlayedMs = currentTimeMs;
@@ -87,43 +117,58 @@ void setup()
     servoInit();
     buzzerInit();
     servoSetAngle(90);
+    durationLeds.showDuration(currentDurationIndex);
 }
 
 void loop()
 {
     while (true)
     {
-        if (consumeAddNodeRequest())
-        {
-            currentState = SaveNoteToMelody;
-        }
+        handleButtonPress();
         const uint32_t currentTimeMs = xTaskGetTickCount() * portTICK_PERIOD_MS;
         switch (currentState)
         {
         case SelectNote:
+        {
             handleNoteChange(currentTimeMs);
-            break;
+        }
+        break;
         case PreviewPlayNote:
+        {
             handleNoteChange(currentTimeMs);
-            if (currentTimeMs - lastNotePlayedMs >= durations[currentDurationIndex])
+            if (currentTimeMs - lastNotePlayedMs >= durationConfigs[currentDurationIndex].durationMs)
             {
                 stopNote();
                 currentState = SelectNote;
             }
-            break;
+        }
+        break;
         case SaveNoteToMelody:
+        {
             stopNote();
+            currentMelody.addNote(tones[currentNoteIndex], durationConfigs[currentDurationIndex].durationMs);
             currentNoteIndex = -1;
             currentDurationIndex = 0;
+            durationLeds.showDuration(currentDurationIndex);
             currentState = SelectNote;
             encoderReset();
-            break;
+        }
+        break;
         case PlayMelody:
+        {
             // Handle play melody logic
-            break;
+            const bool isPlaying = currentMelody.playMelody(currentTimeMs);
+            if (!isPlaying)
+            {
+                currentState = StopMelody;
+            }
+        }
+        break;
         case StopMelody:
-            // Handle stop melody logic
-            break;
+        {
+            currentMelody.stopMelody();
+        }
+        break;
         }
 
         vTaskDelay(pdMS_TO_TICKS(superloop::yieldDelayMs));
