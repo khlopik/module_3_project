@@ -1,21 +1,27 @@
 #include "melody.hpp"
 #include "buzzer.hpp"
 
-void Melody::addNote(uint16_t tone, uint16_t duration)
+uint8_t Melody::getNotesLeftToPlay() const
+{
+    return noteCount_ - currentNoteIndex_ - 1; // Return the number of notes left to play
+}
+
+uint8_t Melody::addNote(uint16_t tone, uint16_t duration)
 {
     if (noteCount_ < melodyConfig::maxNotes)
     {
         notes_[noteCount_++] = {tone, duration};
     }
+    return noteCount_;
 }
 
-bool Melody::playMelody(uint32_t currentTimeMs)
+uint8_t Melody::playMelody(uint32_t currentTimeMs)
 {
     if (currentNoteIndex_ >= noteCount_)
     {
         buzzer::stopNote();
         isPlaying_ = false;
-        return false;
+        return 0;
     }
 
     uint32_t elapsedTime = currentTimeMs - lastNotePlayedMs_;
@@ -38,7 +44,7 @@ bool Melody::playMelody(uint32_t currentTimeMs)
         {
             buzzer::stopNote();
             isPlaying_ = false;
-            return false;
+            return 0;
         }
 
         lastNotePlayedMs_ = currentTimeMs;
@@ -52,12 +58,12 @@ bool Melody::playMelody(uint32_t currentTimeMs)
     {
         buzzer::stopNote();
         isPlaying_ = false;
-        return true;
+        return getNotesLeftToPlay();
     }
 
     if (isPlaying_)
     {
-        return true;
+        return getNotesLeftToPlay();
     }
 
     if (frequency == tone::rest)
@@ -70,7 +76,7 @@ bool Melody::playMelody(uint32_t currentTimeMs)
     }
     isPlaying_ = true;
 
-    return true;
+    return getNotesLeftToPlay();
 }
 
 void Melody::stopMelody()
