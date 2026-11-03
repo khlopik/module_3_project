@@ -4,103 +4,109 @@
 #include "button_gpio.h"
 #include "esp_log.h"
 
-pcnt_unit_handle_t pcnt_unit = NULL;
-pcnt_channel_handle_t pcnt_channel_0 = NULL;
-pcnt_channel_handle_t pcnt_channel_1 = NULL;
-
-static volatile bool addNotePending = false;
-
-bool consumeAddNoteRequest()
+namespace
 {
-    const bool addNote = addNotePending;
-    addNotePending = false;
+    pcnt_unit_handle_t pcnt_unit = NULL;
+    pcnt_channel_handle_t pcnt_channel_0 = NULL;
+    pcnt_channel_handle_t pcnt_channel_1 = NULL;
 
-    return addNote;
-}
+    volatile bool addNotePending = false;
 
-static void onClick(void *arg, void *data)
+    void onClick(void *arg, void *data)
+    {
+        ESP_LOGI("ENCODER", "Button single click!");
+        addNotePending = true;
+    }
+
+    void onLongPress(void *arg, void *data)
+    {
+        ESP_LOGI("ENCODER", "Button long press!");
+    }
+
+    void configButton()
+    {
+        button_config_t btnConfig = {};
+        btnConfig.long_press_time = 1000;
+        btnConfig.short_press_time = 50;
+
+        button_gpio_config_t btnGpioConfig = {};
+        btnGpioConfig.gpio_num = pinConfig::encoderButton;
+        btnGpioConfig.active_level = 0;
+        btnGpioConfig.disable_pull = false;
+
+        button_handle_t btn = nullptr;
+        ESP_ERROR_CHECK(iot_button_new_gpio_device(&btnConfig, &btnGpioConfig, &btn));
+        ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_SINGLE_CLICK, NULL, onClick, NULL));
+        ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, NULL, onLongPress, NULL));
+    }
+} // namespace
+
+namespace encoder
 {
-    ESP_LOGI("ENCODER", "Button single click!");
-    addNotePending = true;
-}
+    void init()
+    {
+        pcnt_unit_config_t unit_config = {};
+        unit_config.high_limit = 10000;
+        unit_config.low_limit = -10000;
+        unit_config.flags.accum_count = true;
 
-static void onLongPress(void *arg, void *data)
-{
-    ESP_LOGI("ENCODER", "Button long press!");
-}
+        ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit));
 
-void configButton()
-{
-    button_config_t btnConfig = {};
-    btnConfig.long_press_time = 1000;
-    btnConfig.short_press_time = 50;
+        pcnt_chan_config_t chan_config_0 = {};
 
-    button_gpio_config_t btnGpioConfig = {};
-    btnGpioConfig.gpio_num = pin::encoderButton;
-    btnGpioConfig.active_level = 0;
-    btnGpioConfig.disable_pull = false;
+        chan_config_0.edge_gpio_num = encoderConfig::pinA;
+        chan_config_0.level_gpio_num = encoderConfig::pinB;
 
-    button_handle_t btn = nullptr;
-    ESP_ERROR_CHECK(iot_button_new_gpio_device(&btnConfig, &btnGpioConfig, &btn));
-    ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_SINGLE_CLICK, NULL, onClick, NULL));
-    ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, NULL, onLongPress, NULL));
-}
+        ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_0, &pcnt_channel_0));
+        ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_0,
+                                                     PCNT_CHANNEL_EDGE_ACTION_DECREASE,
+                                                     PCNT_CHANNEL_EDGE_ACTION_INCREASE));
+        ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_0,
+                                                      PCNT_CHANNEL_LEVEL_ACTION_KEEP,
+                                                      PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
 
-void encoderInit()
-{
-    pcnt_unit_config_t unit_config = {};
-    unit_config.high_limit = 10000;
-    unit_config.low_limit = -10000;
-    unit_config.flags.accum_count = true;
+        pcnt_chan_config_t chan_config_1 = {};
+        chan_config_1.edge_gpio_num = encoderConfig::pinB;
+        chan_config_1.level_gpio_num = encoderConfig::pinA;
 
-    ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit));
+        ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_1, &pcnt_channel_1));
+        ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_1,
+                                                     PCNT_CHANNEL_EDGE_ACTION_INCREASE,
+                                                     PCNT_CHANNEL_EDGE_ACTION_DECREASE));
+        ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_1,
+                                                      PCNT_CHANNEL_LEVEL_ACTION_KEEP,
+                                                      PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
 
-    pcnt_chan_config_t chan_config_0 = {};
+        pcnt_glitch_filter_config_t filter_config = {
+            .max_glitch_ns = encoderConfig::maxGlitchNs,
+        };
+        ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit, &filter_config));
+        ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit));
+        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+        ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
 
-    chan_config_0.edge_gpio_num = encoder::pinA;
-    chan_config_0.level_gpio_num = encoder::pinB;
+        ESP_LOGI("ENCODER", "PCNT X4 Quadrature Mode Initialized");
 
-    ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_0, &pcnt_channel_0));
-    ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_0,
-                                                 PCNT_CHANNEL_EDGE_ACTION_DECREASE,
-                                                 PCNT_CHANNEL_EDGE_ACTION_INCREASE));
-    ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_0,
-                                                  PCNT_CHANNEL_LEVEL_ACTION_KEEP,
-                                                  PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
+        configButton();
+    }
 
-    pcnt_chan_config_t chan_config_1 = {};
-    chan_config_1.edge_gpio_num = encoder::pinB;
-    chan_config_1.level_gpio_num = encoder::pinA;
+    bool consumeAddNoteRequest()
+    {
+        const bool addNote = addNotePending;
+        addNotePending = false;
 
-    ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_1, &pcnt_channel_1));
-    ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_1,
-                                                 PCNT_CHANNEL_EDGE_ACTION_INCREASE,
-                                                 PCNT_CHANNEL_EDGE_ACTION_DECREASE));
-    ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_1,
-                                                  PCNT_CHANNEL_LEVEL_ACTION_KEEP,
-                                                  PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
+        return addNote;
+    }   
 
-    pcnt_glitch_filter_config_t filter_config = {
-        .max_glitch_ns = encoder::maxGlitchNs,
-    };
-    ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit, &filter_config));
-    ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit));
-    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
-    ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
+    int getEncoderCount()
+    {
+        int value;
+        ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &value));
+        return value / 4; // Divide by 4 to get the actual count in quadrature mode
+    }
 
-    ESP_LOGI("ENCODER", "PCNT X4 Quadrature Mode Initialized");
-
-    configButton();
-}
-
-int getEncoderCount()
-{
-    int value;
-    ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &value));
-    return value / 4; // Divide by 4 to get the actual count in quadrature mode
-}
-
-void encoderReset()
-{
-    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
-}
+    void reset()
+    {
+        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+    }
+} // namespace encoder

@@ -18,9 +18,9 @@ int currentNoteIndex = -1;
 uint16_t currentDurationIndex = 0;
 uint32_t lastNotePlayedMs = 0;
 
-inline uint16_t getAngleForNoteIndex(uint16_t noteIndex)
+uint16_t getAngleForNoteIndex(uint16_t noteIndex)
 {
-    return noteIndex * servo::maxAngle / (toneCount - 1);
+    return noteIndex * servoConfig::maxAngle / (toneCount - 1);
 }
 
 enum State
@@ -38,7 +38,7 @@ DurationLeds durationLeds;
 
 void handleButtonPress()
 {
-    if (consumePlayMelodyRequest())
+    if (gpio::consumePlayMelodyRequest())
     {
         if (currentState == PlayMelody)
         {
@@ -51,7 +51,7 @@ void handleButtonPress()
         return;
     }
 
-    if (consumeResetMelodyRequest())
+    if (gpio::consumeResetMelodyRequest())
     {
         currentMelody.clearMelody();
         currentState = SelectNote;
@@ -61,7 +61,7 @@ void handleButtonPress()
         return;
     }
 
-    if (consumeChangeDurationRequest())
+    if (gpio::consumeChangeDurationRequest())
     {
         if (currentState != SelectNote && currentState != PreviewPlayNote)
         {
@@ -72,7 +72,7 @@ void handleButtonPress()
         ESP_LOGI("DURATION", "New duration index: %d", currentDurationIndex);
     }
 
-    if (consumeAddNoteRequest())
+    if (encoder::consumeAddNoteRequest())
     {
         if (currentState != SelectNote && currentState != PreviewPlayNote)
         {
@@ -84,7 +84,7 @@ void handleButtonPress()
 
 void handleNoteChange(uint32_t currentTimeMs)
 {
-    int count = getEncoderCount();
+    int count = encoder::getEncoderCount();
 
     const int newNoteIndex = ((count % toneCount) + toneCount) % toneCount;
 
@@ -95,14 +95,14 @@ void handleNoteChange(uint32_t currentTimeMs)
         uint16_t frequency = tones[currentNoteIndex];
         uint16_t angle = getAngleForNoteIndex(currentNoteIndex);
         ESP_LOGI("SERVO", "angle: %d", angle);
-        servoSetAngle(angle);
+        servo::setAngle(angle);
         if (frequency == tone::rest)
         {
-            stopNote();
+            buzzer::stopNote();
         }
         else
         {
-            playNote(frequency);
+            buzzer::playNote(frequency);
         }
 
         lastNotePlayedMs = currentTimeMs;
@@ -112,11 +112,11 @@ void handleNoteChange(uint32_t currentTimeMs)
 
 void setup()
 {
-    gpioInit();
-    encoderInit();
-    servoInit();
-    buzzerInit();
-    servoSetAngle(90);
+    gpio::init();
+    encoder::init();
+    servo::init();
+    buzzer::init();
+    servo::setAngle(90);
     durationLeds.showDuration(currentDurationIndex);
 }
 
@@ -138,25 +138,24 @@ void loop()
             handleNoteChange(currentTimeMs);
             if (currentTimeMs - lastNotePlayedMs >= durationConfigs[currentDurationIndex].durationMs)
             {
-                stopNote();
+                buzzer::stopNote();
                 currentState = SelectNote;
             }
         }
         break;
         case SaveNoteToMelody:
         {
-            stopNote();
+            buzzer::stopNote();
             currentMelody.addNote(tones[currentNoteIndex], durationConfigs[currentDurationIndex].durationMs);
             currentNoteIndex = -1;
             currentDurationIndex = 0;
             durationLeds.showDuration(currentDurationIndex);
             currentState = SelectNote;
-            encoderReset();
+            encoder::reset();
         }
         break;
         case PlayMelody:
         {
-            // Handle play melody logic
             const bool isPlaying = currentMelody.playMelody(currentTimeMs);
             if (!isPlaying)
             {
@@ -171,21 +170,7 @@ void loop()
         break;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(superloop::yieldDelayMs));
-
-        // vTaskDelay(pdMS_TO_TICKS(100));
-        // servoSetAngle(0);
-        // playNote(440, 500);
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // servoSetAngle(180);
-        // stopNote();
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // servoSetAngle(90);
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // vTaskDelay(pdMS_TO_TICKS(superloop::yieldDelayMs));
+        vTaskDelay(pdMS_TO_TICKS(superloopConfig::yieldDelayMs));
     }
 }
 
