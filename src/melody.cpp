@@ -3,59 +3,59 @@
 
 void Melody::addNote(uint16_t tone, uint16_t duration)
 {
-    if (mNoteCount < melodyConfig::maxNotes)
+    if (noteCount_ < melodyConfig::maxNotes)
     {
-        mNotes[mNoteCount++] = {tone, duration};
+        notes_[noteCount_++] = {tone, duration};
     }
 }
 
 bool Melody::playMelody(uint32_t currentTimeMs)
 {
-    if (mCurrentNoteIndex >= mNoteCount)
+    if (currentNoteIndex_ >= noteCount_)
     {
         buzzer::stopNote();
-        mIsPlaying = false;
+        isPlaying_ = false;
         return false;
     }
 
-    uint32_t elapsedTime = currentTimeMs - mLastNotePlayedMs;
+    uint32_t elapsedTime = currentTimeMs - lastNotePlayedMs_;
 
-    uint16_t frequency = mNotes[mCurrentNoteIndex].tone;
-    uint16_t durationMs = mNotes[mCurrentNoteIndex].duration;
+    uint16_t frequency = notes_[currentNoteIndex_].tone;
+    uint16_t durationMs = notes_[currentNoteIndex_].duration;
 
     // The first note played
-    if (mLastNotePlayedMs == 0)
+    if (lastNotePlayedMs_ == 0)
     {
-        mLastNotePlayedMs = currentTimeMs;
+        lastNotePlayedMs_ = currentTimeMs;
         elapsedTime = 0;
     }
 
     // Check if the current note has finished playing
     if (elapsedTime >= durationMs)
     {
-        mCurrentNoteIndex++;
-        if (mCurrentNoteIndex >= mNoteCount)
+        currentNoteIndex_++;
+        if (currentNoteIndex_ >= noteCount_)
         {
             buzzer::stopNote();
-            mIsPlaying = false;
+            isPlaying_ = false;
             return false;
         }
 
-        mLastNotePlayedMs = currentTimeMs;
-        elapsedTime = currentTimeMs - mLastNotePlayedMs;
-        frequency = mNotes[mCurrentNoteIndex].tone;
-        durationMs = mNotes[mCurrentNoteIndex].duration;
+        lastNotePlayedMs_ = currentTimeMs;
+        elapsedTime = currentTimeMs - lastNotePlayedMs_;
+        frequency = notes_[currentNoteIndex_].tone;
+        durationMs = notes_[currentNoteIndex_].duration;
     }
 
     const bool isPauseBetweenNotes = elapsedTime > (durationMs - melodyConfig::restBetweenNotesMs);
     if (isPauseBetweenNotes)
     {
         buzzer::stopNote();
-        mIsPlaying = false;
+        isPlaying_ = false;
         return true;
     }
 
-    if (mIsPlaying)
+    if (isPlaying_)
     {
         return true;
     }
@@ -68,7 +68,7 @@ bool Melody::playMelody(uint32_t currentTimeMs)
     {
         buzzer::playNote(frequency);
     }
-    mIsPlaying = true;
+    isPlaying_ = true;
 
     return true;
 }
@@ -76,15 +76,15 @@ bool Melody::playMelody(uint32_t currentTimeMs)
 void Melody::stopMelody()
 {
     buzzer::stopNote();
-    mIsPlaying = false;
-    mCurrentNoteIndex = 0;
-    mLastNotePlayedMs = 0;
+    isPlaying_ = false;
+    currentNoteIndex_ = 0;
+    lastNotePlayedMs_ = 0;
 }
 
 void Melody::clearMelody()
 {
     stopMelody();
-    mNoteCount = 0;
-    mCurrentNoteIndex = 0;
-    mLastNotePlayedMs = 0;
+    noteCount_ = 0;
+    currentNoteIndex_ = 0;
+    lastNotePlayedMs_ = 0;
 }

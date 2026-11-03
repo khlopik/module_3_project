@@ -46,11 +46,11 @@ struct Note
 class Melody
 {
 private:
-    Note mNotes[melodyConfig::maxNotes];
-    uint8_t mNoteCount = 0;
-    uint32_t mLastNotePlayedMs = 0;
-    uint8_t mCurrentNoteIndex = 0;
-    bool mIsPlaying = false;
+    Note notes_[melodyConfig::maxNotes];
+    uint8_t noteCount_ = 0;
+    uint32_t lastNotePlayedMs_ = 0;
+    uint8_t currentNoteIndex_ = 0;
+    bool isPlaying_ = false;
 
 public:
     void addNote(uint16_t tone, uint16_t duration);
