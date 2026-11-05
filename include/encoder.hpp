@@ -4,7 +4,7 @@ namespace encoder
 {
     void init();
     bool consumeAddNoteRequest();
-    int getEncoderCount();
+    int getCount();
     void reset();
     
 } // namespace encoder

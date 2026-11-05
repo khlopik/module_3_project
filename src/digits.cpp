@@ -62,7 +62,7 @@ namespace digits
     void init()
     {
         gpio_config_t config = {};
-        config.pin_bit_mask = getPinBitMask(digitDisplayConfig::pins, digitDisplayConfig::pinCount);
+        config.pin_bit_mask = getPinBitMask(digitDisplayConfig::segmentPins, digitDisplayConfig::segmentCount);
         config.mode = GPIO_MODE_OUTPUT;
         config.pull_up_en = GPIO_PULLUP_DISABLE;
         config.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -70,7 +70,7 @@ namespace digits
 
         gpio_config(&config);
 
-        config.pin_bit_mask = getPinBitMask(digitDisplayConfig::activatorPins, digitDisplayConfig::activatorPinCount);
+        config.pin_bit_mask = getPinBitMask(digitDisplayConfig::activatorPins, digitDisplayConfig::activatorCount);
         gpio_config(&config);
 
         configTimer();
@@ -83,10 +83,10 @@ namespace digits
 
     void showSegments(uint8_t mask)
     {
-        for (size_t i = 0; i < digitDisplayConfig::pinCount; ++i)
+        for (size_t i = 0; i < digitDisplayConfig::segmentCount; ++i)
         {
             const bool on = mask & (1u << i);
-            gpio_set_level(digitDisplayConfig::pins[i], on ? digitDisplayConfig::segmentActiveLevel : digitDisplayConfig::segmentInactiveLevel);
+            gpio_set_level(digitDisplayConfig::segmentPins[i], on ? digitDisplayConfig::segmentActiveLevel : digitDisplayConfig::segmentInactiveLevel);
         }
     }
 
@@ -102,7 +102,7 @@ namespace digits
 
     void turnOff()
     {
-        for (size_t i = 0; i < digitDisplayConfig::activatorPinCount; ++i)
+        for (size_t i = 0; i < digitDisplayConfig::activatorCount; ++i)
         {
             gpio_set_level(digitDisplayConfig::activatorPins[i], digitDisplayConfig::activatorInactiveLevel);
         }

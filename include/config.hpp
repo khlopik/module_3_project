@@ -62,14 +62,14 @@ namespace encoderConfig
 namespace ledConfig
 {
     constexpr gpio_num_t pins[4] = {pinConfig::led1, pinConfig::led2, pinConfig::led3, pinConfig::led4};
-    constexpr uint8_t count = sizeof(pins) / sizeof(pins[0]);
+    constexpr uint8_t ledCount = sizeof(pins) / sizeof(pins[0]);
     constexpr uint32_t pinActiveLevel = 1;
     constexpr uint32_t pinInactiveLevel = 0;
 }
 
 namespace digitDisplayConfig
 {
-    constexpr gpio_num_t pins[] = {
+    constexpr gpio_num_t segmentPins[] = {
         pinConfig::digitDisplayA, // 0b00000001
         pinConfig::digitDisplayB, // 0b00000010
         pinConfig::digitDisplayC, // 0b00000100
@@ -78,12 +78,12 @@ namespace digitDisplayConfig
         pinConfig::digitDisplayF, // 0b00100000
         pinConfig::digitDisplayG, // 0b01000000
     };
-    constexpr uint8_t pinCount = sizeof(digitDisplayConfig::pins) / sizeof(digitDisplayConfig::pins[0]);
+    constexpr uint8_t segmentCount = sizeof(digitDisplayConfig::segmentPins) / sizeof(digitDisplayConfig::segmentPins[0]);
     constexpr gpio_num_t activatorPins[] = {
         pinConfig::digitActivator1,
         pinConfig::digitActivator2,
     };
-    constexpr uint8_t activatorPinCount = sizeof(digitDisplayConfig::activatorPins) / sizeof(digitDisplayConfig::activatorPins[0]);
+    constexpr uint8_t activatorCount = sizeof(digitDisplayConfig::activatorPins) / sizeof(digitDisplayConfig::activatorPins[0]);
     constexpr int segmentActiveLevel = 0;
     constexpr int segmentInactiveLevel = 1;
     constexpr int activatorActiveLevel = 0;

@@ -5,6 +5,8 @@
 
 namespace servo
 {
+    const char *TAG = "SERVO";
+
     void init()
     {
         ledc_timer_config_t timerConfig{};
@@ -36,6 +38,6 @@ namespace servo
         uint32_t duty = (pulseWidthUs * (1 << servoConfig::resolutionBits)) / servoConfig::periodUs;
         ledc_set_duty(LEDC_LOW_SPEED_MODE, servoConfig::channel, duty);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, servoConfig::channel);
-        ESP_LOGI("servo.cpp", "Angle: %d° → Pulse: %d us → Duty: %d\n", angle, pulseWidthUs, duty);
+        ESP_LOGI(TAG, "Angle: %d° → Pulse: %d us → Duty: %d\n", angle, pulseWidthUs, duty);
     }
 } // namespace servo

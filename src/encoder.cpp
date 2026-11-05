@@ -6,6 +6,8 @@
 
 namespace
 {
+    const char *TAG = "ENCODER";
+
     pcnt_unit_handle_t pcnt_unit = NULL;
     pcnt_channel_handle_t pcnt_channel_0 = NULL;
     pcnt_channel_handle_t pcnt_channel_1 = NULL;
@@ -14,13 +16,13 @@ namespace
 
     void onClick(void *arg, void *data)
     {
-        ESP_LOGI("ENCODER", "Button single click!");
+        ESP_LOGI(TAG, "Button single click!");
         addNotePending = true;
     }
 
     void onLongPress(void *arg, void *data)
     {
-        ESP_LOGI("ENCODER", "Button long press!");
+        ESP_LOGI(TAG, "Button long press!");
     }
 
     void configButton()
@@ -85,7 +87,7 @@ namespace encoder
         ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
         ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
 
-        ESP_LOGI("ENCODER", "PCNT X4 Quadrature Mode Initialized");
+        ESP_LOGI(TAG, "PCNT X4 Quadrature Mode Initialized");
 
         configButton();
     }
@@ -98,7 +100,7 @@ namespace encoder
         return addNote;
     }   
 
-    int getEncoderCount()
+    int getCount()
     {
         int value;
         ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &value));

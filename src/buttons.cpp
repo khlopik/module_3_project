@@ -8,6 +8,8 @@
 
 namespace
 {
+    const char *TAG = "BUTTONS";
+
     volatile bool changeDurationPending = false;
     volatile bool playMelodyPending = false;
     volatile bool resetMelodyPending = false;
@@ -15,7 +17,7 @@ namespace
 
     void onChangeDurationButtonClick(void *arg, void *data)
     {
-        ESP_LOGI("GPIO", "ChangeDurationButton single click!");
+        ESP_LOGI(TAG, "ChangeDurationButton single click!");
         portENTER_CRITICAL(&buttonMux);
         changeDurationPending = true;
         portEXIT_CRITICAL(&buttonMux);
@@ -23,7 +25,7 @@ namespace
 
     void onPlayResetButtonPress(void *arg, void *data)
     {
-        ESP_LOGI("GPIO", "PlayResetButton single click!");
+        ESP_LOGI(TAG, "PlayResetButton single click!");
         portENTER_CRITICAL(&buttonMux);
         playMelodyPending = true;
         portEXIT_CRITICAL(&buttonMux);
@@ -31,7 +33,7 @@ namespace
 
     void onPlayResetButtonLongPress(void *arg, void *data)
     {
-        ESP_LOGI("GPIO", "PlayResetButton long press!");
+        ESP_LOGI(TAG, "PlayResetButton long press!");
         portENTER_CRITICAL(&buttonMux);
         resetMelodyPending = true;
         portEXIT_CRITICAL(&buttonMux);

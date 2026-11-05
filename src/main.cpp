@@ -43,10 +43,10 @@ namespace
     {
         ESP_LOGI(TAG, "Setting digits pattern for number: %d", number);
         const uint8_t tens = number / 10;
-        const uint8_t seconds = number % 10;
-        ESP_LOGI(TAG, "Setting digits pattern: %d%d", tens, seconds);
+        const uint8_t ones = number % 10;
+        ESP_LOGI(TAG, "Setting digits pattern: %d%d", tens, ones);
         digitPattern[0] = digitDisplayConfig::digits[tens];
-        digitPattern[1] = digitDisplayConfig::digits[seconds];
+        digitPattern[1] = digitDisplayConfig::digits[ones];
     }
 
     void handleButtonPress()
@@ -99,7 +99,7 @@ namespace
 
     void handleNoteChange(uint32_t currentTimeMs)
     {
-        int count = encoder::getEncoderCount();
+        int count = encoder::getCount();
 
         const int newNoteIndex = ((count % toneConfig::count) + toneConfig::count) % toneConfig::count;
 
@@ -132,7 +132,7 @@ namespace
             digits::turnOff();
             digits::showSegments(digitPattern[activeDigit]);
             digits::activateDigit(activeDigit);
-            activeDigit = (activeDigit + 1) % digitDisplayConfig::activatorPinCount;
+            activeDigit = (activeDigit + 1) % digitDisplayConfig::activatorCount;
         }
     }
 

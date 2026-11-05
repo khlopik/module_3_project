@@ -17,7 +17,7 @@ namespace leds
 
     void showDuration(size_t durationIndex)
     {
-        for (size_t i = 0; i < ledConfig::count; i++)
+        for (size_t i = 0; i < ledConfig::ledCount; i++)
         {
             const bool on = i < durationConfig::durationLedConfig[durationIndex].ledCount;
             gpio_set_level(ledConfig::pins[i], on ? ledConfig::pinActiveLevel : ledConfig::pinInactiveLevel);
