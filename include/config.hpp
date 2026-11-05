@@ -28,6 +28,13 @@ namespace pinConfig
     constexpr gpio_num_t digitActivator2 = GPIO_NUM_2;
 }
 
+namespace buttonConfig
+{
+    constexpr uint32_t longPressTimeMs = 1000;
+    constexpr uint32_t shortPressTimeMs = 50;
+    constexpr int activeLevel = 0;
+}
+
 namespace servoConfig
 {
     constexpr gpio_num_t pin = pinConfig::servo;
@@ -38,6 +45,7 @@ namespace servoConfig
     constexpr uint32_t minPulseWidthUs = 500;
     constexpr uint32_t maxPulseWidthUs = 2500;
     constexpr uint32_t periodUs = 20000;
+    constexpr uint16_t minAngle = 0;
     constexpr uint16_t maxAngle = 180;
 
 }
@@ -57,6 +65,9 @@ namespace encoderConfig
     constexpr gpio_num_t pinA = pinConfig::encoderA;
     constexpr gpio_num_t pinB = pinConfig::encoderB;
     constexpr uint16_t maxGlitchNs = 1000;
+    constexpr int highLimit = 10000;
+    constexpr int lowLimit = -10000;
+    constexpr uint8_t countPerDetent = 4; // Number of counts per detent (click)
 }
 
 namespace ledConfig
@@ -94,8 +105,8 @@ namespace digitDisplayConfig
         0b01011011, // 2 (A, D, E, F, G)
         0b01001111, // 3 (A, C, D, E, G)
         0b01100110, // 4 (B, C, F, G)
-        0b01101101, // 5 (A, B, F, G)
-        0b01111101, // 6 (A, B, E, F, G)
+        0b01101101, // 5 (A, C, D, F, G)
+        0b01111101, // 6 (A, C, D, E, F, G)
         0b00000111, // 7 (A, B, C)
         0b01111111, // 8 (A, B, C, D, E, F, G)
         0b01101111, // 9 (A, B, C, D, F, G)

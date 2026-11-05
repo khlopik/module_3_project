@@ -3,6 +3,7 @@
 #include "iot_button.h"
 #include "button_gpio.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
 
 namespace
 {
@@ -11,35 +12,32 @@ namespace
     pcnt_unit_handle_t pcnt_unit = NULL;
     pcnt_channel_handle_t pcnt_channel_0 = NULL;
     pcnt_channel_handle_t pcnt_channel_1 = NULL;
+    portMUX_TYPE buttonMux = portMUX_INITIALIZER_UNLOCKED;
 
     volatile bool addNotePending = false;
 
     void onClick(void *arg, void *data)
     {
         ESP_LOGI(TAG, "Button single click!");
+        portENTER_CRITICAL(&buttonMux);
         addNotePending = true;
-    }
-
-    void onLongPress(void *arg, void *data)
-    {
-        ESP_LOGI(TAG, "Button long press!");
+        portEXIT_CRITICAL(&buttonMux);
     }
 
     void configButton()
     {
         button_config_t btnConfig = {};
-        btnConfig.long_press_time = 1000;
-        btnConfig.short_press_time = 50;
+        btnConfig.long_press_time = buttonConfig::longPressTimeMs;
+        btnConfig.short_press_time = buttonConfig::shortPressTimeMs;
 
         button_gpio_config_t btnGpioConfig = {};
         btnGpioConfig.gpio_num = pinConfig::encoderButton;
-        btnGpioConfig.active_level = 0;
+        btnGpioConfig.active_level = buttonConfig::activeLevel;
         btnGpioConfig.disable_pull = false;
 
         button_handle_t btn = nullptr;
         ESP_ERROR_CHECK(iot_button_new_gpio_device(&btnConfig, &btnGpioConfig, &btn));
         ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_SINGLE_CLICK, NULL, onClick, NULL));
-        ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, NULL, onLongPress, NULL));
     }
 } // namespace
 
@@ -48,8 +46,8 @@ namespace encoder
     void init()
     {
         pcnt_unit_config_t unit_config = {};
-        unit_config.high_limit = 10000;
-        unit_config.low_limit = -10000;
+        unit_config.high_limit = encoderConfig::highLimit;
+        unit_config.low_limit = encoderConfig::lowLimit;
         unit_config.flags.accum_count = true;
 
         ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit));
@@ -94,17 +92,19 @@ namespace encoder
 
     bool consumeAddNoteRequest()
     {
+        portENTER_CRITICAL(&buttonMux);
         const bool addNote = addNotePending;
         addNotePending = false;
+        portEXIT_CRITICAL(&buttonMux);
 
         return addNote;
-    }   
+    }
 
     int getCount()
     {
         int value;
         ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &value));
-        return value / 4; // Divide by 4 to get the actual count in quadrature mode
+        return value / encoderConfig::countPerDetent; // Divide by countPerDetent to get the actual count in quadrature mode
     }
 
     void reset()

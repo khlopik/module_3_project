@@ -45,14 +45,14 @@ namespace buttons
     void init()
     {
          button_config_t btnConfig = {};
-        btnConfig.long_press_time = 1000;
-        btnConfig.short_press_time = 50;
+        btnConfig.long_press_time = buttonConfig::longPressTimeMs;
+        btnConfig.short_press_time = buttonConfig::shortPressTimeMs;
 
         button_gpio_config_t btnGpioConfig = {};
 
         // Duration Button configuration
         btnGpioConfig.gpio_num = pinConfig::durationButton;
-        btnGpioConfig.active_level = 0;
+        btnGpioConfig.active_level = buttonConfig::activeLevel;
         btnGpioConfig.disable_pull = false;
 
         button_handle_t btn = nullptr;

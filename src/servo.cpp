@@ -32,7 +32,7 @@ namespace servo
 
     void setAngle(int16_t angle)
     {
-        angle = 180 - (angle > 180 ? 180 : (angle < 0 ? 0 : angle));
+        angle = servoConfig::maxAngle - (angle > servoConfig::maxAngle ? servoConfig::maxAngle : (angle < servoConfig::minAngle ? servoConfig::minAngle : angle));
 
         uint32_t pulseWidthUs = servoConfig::minPulseWidthUs + ((servoConfig::maxPulseWidthUs - servoConfig::minPulseWidthUs) * angle) / 180;
         uint32_t duty = (pulseWidthUs * (1 << servoConfig::resolutionBits)) / servoConfig::periodUs;

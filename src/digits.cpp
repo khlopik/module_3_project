@@ -74,6 +74,7 @@ namespace digits
         gpio_config(&config);
 
         configTimer();
+        turnOff();
     }
 
     void activateDigit(uint8_t digit)
