@@ -1,3 +1,4 @@
+#include "buttons.hpp"
 #include "config.hpp"
 #include "iot_button.h"
 #include "button_gpio.h"
@@ -35,10 +36,13 @@ namespace
         resetMelodyPending = true;
         portEXIT_CRITICAL(&buttonMux);
     }
+} // namespace
 
-    void configButtons()
+namespace buttons
+{
+    void init()
     {
-        button_config_t btnConfig = {};
+         button_config_t btnConfig = {};
         btnConfig.long_press_time = 1000;
         btnConfig.short_press_time = 50;
 
@@ -60,28 +64,6 @@ namespace
         ESP_ERROR_CHECK(iot_button_new_gpio_device(&btnConfig, &btnGpioConfig, &btn));
         ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_SINGLE_CLICK, NULL, onPlayResetButtonPress, NULL));
         ESP_ERROR_CHECK(iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, NULL, onPlayResetButtonLongPress, NULL));
-    }
-
-    void configDurationLeds()
-    {
-        gpio_config_t ledPinConfig{};
-        ledPinConfig.pin_bit_mask = (1ULL << pinConfig::led1) | (1ULL << pinConfig::led2) | (1ULL << pinConfig::led3) | (1ULL << pinConfig::led4);
-        ledPinConfig.mode = GPIO_MODE_OUTPUT;
-        ledPinConfig.pull_up_en = GPIO_PULLUP_DISABLE;
-        ledPinConfig.pull_down_en = GPIO_PULLDOWN_DISABLE;
-        ledPinConfig.intr_type = GPIO_INTR_DISABLE;
-
-        gpio_config(&ledPinConfig);
-    }
-
-} // namespace
-
-namespace gpio
-{
-    void init()
-    {
-        configDurationLeds();
-        configButtons();
     }
 
     bool consumeChangeDurationRequest()
@@ -113,4 +95,4 @@ namespace gpio
 
         return resetMelody;
     }
-} // namespace gpio
+} // namespace buttons

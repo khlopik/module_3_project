@@ -1,10 +1,10 @@
 #include "config.hpp"
-#include "gpio.hpp"
+#include "buttons.hpp"
 #include "servo.hpp"
 #include "buzzer.hpp"
 #include "encoder.hpp"
 #include "melody.hpp"
-#include "duration_leds.hpp"
+#include "leds.hpp"
 #include "digits.hpp"
 #include "freertos/FreeRTOS.h"
 #include "esp_log.h"
@@ -53,7 +53,7 @@ namespace
 
     void handleButtonPress()
     {
-        if (gpio::consumePlayMelodyRequest())
+        if (buttons::consumePlayMelodyRequest())
         {
             if (currentState == PlayMelody)
             {
@@ -66,7 +66,7 @@ namespace
             return;
         }
 
-        if (gpio::consumeResetMelodyRequest())
+        if (buttons::consumeResetMelodyRequest())
         {
             currentMelody.clearMelody();
             currentState = SelectNote;
@@ -79,7 +79,7 @@ namespace
             return;
         }
 
-        if (gpio::consumeChangeDurationRequest())
+        if (buttons::consumeChangeDurationRequest())
         {
             if (currentState != SelectNote && currentState != PreviewPlayNote)
             {
@@ -141,7 +141,8 @@ namespace
 
     void setup()
     {
-        gpio::init();
+        buttons::init();
+        leds::init();
         encoder::init();
         servo::init();
         buzzer::init();

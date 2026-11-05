@@ -5,6 +5,11 @@
 class DurationLeds
 {
 public:
-    uint8_t ledCountFor(uint16_t durationMs);
+    uint8_t getLedCountForDuration(uint16_t durationMs);
     void showDuration(size_t durationIndex);
 };
+
+namespace leds
+{
+    void init();
+}

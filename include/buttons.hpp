@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gpio
+namespace buttons
 {
     void init();
     bool consumeChangeDurationRequest();
