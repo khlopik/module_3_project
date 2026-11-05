@@ -11,6 +11,7 @@
 
 namespace
 {
+    const char *TAG = "MAIN";
     int currentNoteIndex = -1; // -1 indicates no note is currently selected
     uint16_t currentDurationIndex = 0;
     uint32_t lastNotePlayedMs = 0;
@@ -33,6 +34,7 @@ namespace
     Melody currentMelody;
     DurationLeds durationLeds;
 
+    uint8_t noteCount = 0;
     uint8_t activeDigit = 0;
     uint8_t digitPattern[] = {
         0b00000000,
@@ -41,8 +43,10 @@ namespace
 
     void setDigitsPattern(uint8_t number)
     {
+        ESP_LOGI(TAG, "Setting digits pattern for number: %d", number);
         const uint8_t tens = number / 10;
         const uint8_t seconds = number % 10;
+        ESP_LOGI(TAG, "Setting digits pattern: %d%d", tens, seconds);
         digitPattern[0] = digitDisplayConfig::digits[tens];
         digitPattern[1] = digitDisplayConfig::digits[seconds];
     }
@@ -55,7 +59,7 @@ namespace
             {
                 currentState = StopMelody;
             }
-            else
+            else if (noteCount > 0)
             {
                 currentState = PlayMelody;
             }
@@ -68,8 +72,10 @@ namespace
             currentState = SelectNote;
             currentNoteIndex = -1;
             currentDurationIndex = 0;
+            noteCount = 0;
             durationLeds.showDuration(currentDurationIndex);
             setDigitsPattern(0);
+            encoder::reset();
             return;
         }
 
@@ -81,7 +87,7 @@ namespace
             }
             currentDurationIndex = (currentDurationIndex + 1) % durationCount;
             durationLeds.showDuration(currentDurationIndex);
-            ESP_LOGI("DURATION", "New duration index: %d", currentDurationIndex);
+            ESP_LOGI(TAG, "New duration index: %d", currentDurationIndex);
         }
 
         if (encoder::consumeAddNoteRequest())
@@ -102,11 +108,11 @@ namespace
 
         if (newNoteIndex != currentNoteIndex)
         {
-            ESP_LOGI("ENCODER", "newNoteIndex: %d", newNoteIndex);
+            ESP_LOGI(TAG, "newNoteIndex: %d", newNoteIndex);
             currentNoteIndex = newNoteIndex;
             uint16_t frequency = tone::tones[currentNoteIndex];
             uint16_t angle = getAngleForNoteIndex(currentNoteIndex);
-            ESP_LOGI("SERVO", "angle: %d", angle);
+            ESP_LOGI(TAG, "angle: %d", angle);
             servo::setAngle(angle);
             if (frequency == tone::rest)
             {
@@ -127,7 +133,7 @@ namespace
         if (digits::consumeSwitchRequest())
         {
             digits::turnOff();
-            digits::showSegments(digitDisplayConfig::digits[activeDigit]);
+            digits::showSegments(digitPattern[activeDigit]);
             digits::activateDigit(activeDigit);
             activeDigit = (activeDigit + 1) % digitDisplayConfig::activatorPinCount;
         }
@@ -170,7 +176,8 @@ namespace
             case SaveNoteToMelody:
             {
                 buzzer::stopNote();
-                const uint8_t noteCount = currentMelody.addNote(tone::tones[currentNoteIndex], durationConfigs[currentDurationIndex].durationMs);
+                noteCount = currentMelody.addNote(tone::tones[currentNoteIndex], durationConfigs[currentDurationIndex].durationMs);
+                ESP_LOGI(TAG, "noteCount: %d", noteCount);
                 setDigitsPattern(noteCount);
                 currentNoteIndex = -1;
                 currentDurationIndex = 0;

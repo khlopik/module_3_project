@@ -3,7 +3,7 @@
 
 uint8_t Melody::getNotesLeftToPlay() const
 {
-    return noteCount_ - currentNoteIndex_ - 1; // Return the number of notes left to play
+    return noteCount_ - currentNoteIndex_; // Return the number of notes left to play
 }
 
 uint8_t Melody::addNote(uint16_t tone, uint16_t duration)

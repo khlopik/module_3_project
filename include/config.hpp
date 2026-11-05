@@ -17,15 +17,15 @@ namespace pinConfig
     constexpr gpio_num_t led2 = GPIO_NUM_17;
     constexpr gpio_num_t led3 = GPIO_NUM_18;
     constexpr gpio_num_t led4 = GPIO_NUM_8;
-    constexpr gpio_num_t digitDisplayA = GPIO_NUM_1;
-    constexpr gpio_num_t digitDisplayB = GPIO_NUM_2;
+    constexpr gpio_num_t digitDisplayA = GPIO_NUM_14;
+    constexpr gpio_num_t digitDisplayB = GPIO_NUM_21;
     constexpr gpio_num_t digitDisplayC = GPIO_NUM_4;
     constexpr gpio_num_t digitDisplayD = GPIO_NUM_7;
     constexpr gpio_num_t digitDisplayE = GPIO_NUM_9;
     constexpr gpio_num_t digitDisplayF = GPIO_NUM_10;
     constexpr gpio_num_t digitDisplayG = GPIO_NUM_13;
-    constexpr gpio_num_t digitActivator1 = GPIO_NUM_14;
-    constexpr gpio_num_t digitActivator2 = GPIO_NUM_21;
+    constexpr gpio_num_t digitActivator1 = GPIO_NUM_1;
+    constexpr gpio_num_t digitActivator2 = GPIO_NUM_2;
 }
 
 namespace servoConfig
@@ -94,11 +94,11 @@ namespace digitDisplayConfig
         0b01011011, // 2 (A, D, E, F, G)
         0b01001111, // 3 (A, C, D, E, G)
         0b01100110, // 4 (B, C, F, G)
-        0b01111111, // 5 (A, B, F, G)
-        0b01110111, // 6 (A, B, E, F, G)
-        0b00000110, // 7 (A, B, C)
+        0b01101101, // 5 (A, B, F, G)
+        0b01111101, // 6 (A, B, E, F, G)
+        0b00000111, // 7 (A, B, C)
         0b01111111, // 8 (A, B, C, D, E, F, G)
-        0b01110111, // 9 (A, B, C, D, F, G)
+        0b01101111, // 9 (A, B, C, D, F, G)
     };
     constexpr uint32_t scanIntervalUs = 10000;
 }
