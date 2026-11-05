@@ -32,7 +32,6 @@ namespace
 
     State currentState = SelectNote;
     Melody currentMelody;
-    DurationLeds durationLeds;
 
     uint8_t noteCount = 0;
     uint8_t activeDigit = 0;
@@ -73,7 +72,7 @@ namespace
             currentNoteIndex = -1;
             currentDurationIndex = 0;
             noteCount = 0;
-            durationLeds.showDuration(currentDurationIndex);
+            leds::showDuration(currentDurationIndex);
             setDigitsPattern(0);
             encoder::reset();
             return;
@@ -86,7 +85,7 @@ namespace
                 return;
             }
             currentDurationIndex = (currentDurationIndex + 1) % durationCount;
-            durationLeds.showDuration(currentDurationIndex);
+            leds::showDuration(currentDurationIndex);
             ESP_LOGI(TAG, "New duration index: %d", currentDurationIndex);
         }
 
@@ -148,7 +147,7 @@ namespace
         buzzer::init();
         digits::init();
         setDigitsPattern(0);
-        durationLeds.showDuration(currentDurationIndex);
+        leds::showDuration(currentDurationIndex);
     }
 
     void loop()
@@ -182,7 +181,7 @@ namespace
                 setDigitsPattern(noteCount);
                 currentNoteIndex = -1;
                 currentDurationIndex = 0;
-                durationLeds.showDuration(currentDurationIndex);
+                leds::showDuration(currentDurationIndex);
                 currentState = SelectNote;
                 encoder::reset();
             }
