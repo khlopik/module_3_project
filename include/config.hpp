@@ -109,6 +109,43 @@ namespace melodyConfig
     constexpr uint16_t restBetweenNotesMs = 50;
 }
 
+namespace toneConfig
+{
+    constexpr uint16_t C4 = 262;
+    constexpr uint16_t D4 = 294;
+    constexpr uint16_t E4 = 330;
+    constexpr uint16_t F4 = 349;
+    constexpr uint16_t G4 = 392;
+    constexpr uint16_t A4 = 440;
+    constexpr uint16_t B4 = 494;
+    constexpr uint16_t C5 = 523;
+    constexpr uint16_t rest = 0;
+
+    constexpr uint16_t tones[] = {C4, D4, E4, F4, G4, A4, B4, C5, rest};
+    constexpr int count = sizeof(tones) / sizeof(tones[0]);
+}
+
+namespace durationConfig
+{
+    constexpr uint16_t half = 800;
+    constexpr uint16_t quarter = 400;
+    constexpr uint16_t eighth = 200;
+
+    struct DurationLedConfig
+    {
+        uint16_t durationMs;
+        uint8_t ledCount;
+    };
+
+    constexpr DurationLedConfig durationLedConfig[] = {
+        {durationConfig::half, 4},
+        {durationConfig::quarter, 2},
+        {durationConfig::eighth, 1},
+    };
+
+    constexpr int durationCount = sizeof(durationLedConfig) / sizeof(durationLedConfig[0]);
+}
+
 namespace superloopConfig
 {
     constexpr uint32_t yieldDelayMs = 10;

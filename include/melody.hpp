@@ -3,43 +3,6 @@
 #include "config.hpp"
 #include <cstdint>
 
-namespace tone
-{
-    constexpr uint16_t C4 = 262;
-    constexpr uint16_t D4 = 294;
-    constexpr uint16_t E4 = 330;
-    constexpr uint16_t F4 = 349;
-    constexpr uint16_t G4 = 392;
-    constexpr uint16_t A4 = 440;
-    constexpr uint16_t B4 = 494;
-    constexpr uint16_t C5 = 523;
-    constexpr uint16_t rest = 0;
-
-    constexpr uint16_t tones[] = {C4, D4, E4, F4, G4, A4, B4, C5, rest};
-    constexpr int count = sizeof(tones) / sizeof(tones[0]);
-}
-
-namespace duration
-{
-    constexpr uint16_t half = 800;
-    constexpr uint16_t quarter = 400;
-    constexpr uint16_t eighth = 200;
-}
-
-struct DurationConfig
-{
-    uint16_t durationMs;
-    uint8_t ledCount;
-};
-
-constexpr DurationConfig durationConfigs[] = {
-    {duration::half, 4},
-    {duration::quarter, 2},
-    {duration::eighth, 1},
-};
-
-constexpr int durationCount = sizeof(durationConfigs) / sizeof(durationConfigs[0]);
-
 struct Note
 {
     uint16_t tone;
@@ -57,7 +20,8 @@ private:
     uint8_t getNotesLeftToPlay() const;
 
 public:
-    uint8_t addNote(uint16_t tone, uint16_t duration);
+    uint8_t getNoteCount() const;
+    void addNote(uint16_t tone, uint16_t duration);
     uint8_t playMelody(uint32_t currentTimeMs);
     void stopMelody();
     void clearMelody();

@@ -1,6 +1,5 @@
 #include "config.hpp"
 #include "leds.hpp"
-#include "melody.hpp"
 
 namespace leds
 {
@@ -20,7 +19,7 @@ namespace leds
     {
         for (size_t i = 0; i < ledConfig::count; i++)
         {
-            const bool on = i < durationConfigs[durationIndex].ledCount;
+            const bool on = i < durationConfig::durationLedConfig[durationIndex].ledCount;
             gpio_set_level(ledConfig::pins[i], on ? ledConfig::pinActiveLevel : ledConfig::pinInactiveLevel);
         }
     }

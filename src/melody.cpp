@@ -6,13 +6,18 @@ uint8_t Melody::getNotesLeftToPlay() const
     return noteCount_ - currentNoteIndex_; // Return the number of notes left to play
 }
 
-uint8_t Melody::addNote(uint16_t tone, uint16_t duration)
+uint8_t Melody::getNoteCount() const
+{
+    return noteCount_;
+}
+
+void Melody::addNote(uint16_t tone, uint16_t duration)
 {
     if (noteCount_ < melodyConfig::maxNotes)
     {
         notes_[noteCount_++] = {tone, duration};
     }
-    return noteCount_;
+    return;
 }
 
 uint8_t Melody::playMelody(uint32_t currentTimeMs)
@@ -66,7 +71,7 @@ uint8_t Melody::playMelody(uint32_t currentTimeMs)
         return getNotesLeftToPlay();
     }
 
-    if (frequency == tone::rest)
+    if (frequency == toneConfig::rest)
     {
         buzzer::stopNote();
     }

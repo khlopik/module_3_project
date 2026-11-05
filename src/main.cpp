@@ -18,7 +18,7 @@ namespace
 
     uint16_t getAngleForNoteIndex(uint16_t noteIndex)
     {
-        return noteIndex * servoConfig::maxAngle / (tone::count - 1);
+        return noteIndex * servoConfig::maxAngle / (toneConfig::count - 1);
     }
 
     enum State
@@ -33,7 +33,6 @@ namespace
     State currentState = SelectNote;
     Melody currentMelody;
 
-    uint8_t noteCount = 0;
     uint8_t activeDigit = 0;
     uint8_t digitPattern[] = {
         0b00000000,
@@ -58,7 +57,7 @@ namespace
             {
                 currentState = StopMelody;
             }
-            else if (noteCount > 0)
+            else if (currentMelody.getNoteCount() > 0)
             {
                 currentState = PlayMelody;
             }
@@ -71,7 +70,6 @@ namespace
             currentState = SelectNote;
             currentNoteIndex = -1;
             currentDurationIndex = 0;
-            noteCount = 0;
             leds::showDuration(currentDurationIndex);
             setDigitsPattern(0);
             encoder::reset();
@@ -84,7 +82,7 @@ namespace
             {
                 return;
             }
-            currentDurationIndex = (currentDurationIndex + 1) % durationCount;
+            currentDurationIndex = (currentDurationIndex + 1) % durationConfig::durationCount;
             leds::showDuration(currentDurationIndex);
             ESP_LOGI(TAG, "New duration index: %d", currentDurationIndex);
         }
@@ -103,17 +101,17 @@ namespace
     {
         int count = encoder::getEncoderCount();
 
-        const int newNoteIndex = ((count % tone::count) + tone::count) % tone::count;
+        const int newNoteIndex = ((count % toneConfig::count) + toneConfig::count) % toneConfig::count;
 
         if (newNoteIndex != currentNoteIndex)
         {
             ESP_LOGI(TAG, "newNoteIndex: %d", newNoteIndex);
             currentNoteIndex = newNoteIndex;
-            uint16_t frequency = tone::tones[currentNoteIndex];
+            uint16_t frequency = toneConfig::tones[currentNoteIndex];
             uint16_t angle = getAngleForNoteIndex(currentNoteIndex);
             ESP_LOGI(TAG, "angle: %d", angle);
             servo::setAngle(angle);
-            if (frequency == tone::rest)
+            if (frequency == toneConfig::rest)
             {
                 buzzer::stopNote();
             }
@@ -166,7 +164,7 @@ namespace
             case PreviewPlayNote:
             {
                 handleNoteChange(currentTimeMs);
-                if (currentTimeMs - lastNotePlayedMs >= durationConfigs[currentDurationIndex].durationMs)
+                if (currentTimeMs - lastNotePlayedMs >= durationConfig::durationLedConfig[currentDurationIndex].durationMs)
                 {
                     buzzer::stopNote();
                     currentState = SelectNote;
@@ -176,9 +174,8 @@ namespace
             case SaveNoteToMelody:
             {
                 buzzer::stopNote();
-                noteCount = currentMelody.addNote(tone::tones[currentNoteIndex], durationConfigs[currentDurationIndex].durationMs);
-                ESP_LOGI(TAG, "noteCount: %d", noteCount);
-                setDigitsPattern(noteCount);
+                currentMelody.addNote(toneConfig::tones[currentNoteIndex], durationConfig::durationLedConfig[currentDurationIndex].durationMs);
+                setDigitsPattern(currentMelody.getNoteCount());
                 currentNoteIndex = -1;
                 currentDurationIndex = 0;
                 leds::showDuration(currentDurationIndex);
