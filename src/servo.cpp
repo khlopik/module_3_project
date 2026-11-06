@@ -34,7 +34,7 @@ namespace servo
     {
         angle = servoConfig::maxAngle - (angle > servoConfig::maxAngle ? servoConfig::maxAngle : (angle < servoConfig::minAngle ? servoConfig::minAngle : angle));
 
-        uint32_t pulseWidthUs = servoConfig::minPulseWidthUs + ((servoConfig::maxPulseWidthUs - servoConfig::minPulseWidthUs) * angle) / 180;
+        uint32_t pulseWidthUs = servoConfig::minPulseWidthUs + ((servoConfig::maxPulseWidthUs - servoConfig::minPulseWidthUs) * angle) / servoConfig::maxAngle;
         uint32_t duty = (pulseWidthUs * (1 << servoConfig::resolutionBits)) / servoConfig::periodUs;
         ledc_set_duty(LEDC_LOW_SPEED_MODE, servoConfig::channel, duty);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, servoConfig::channel);

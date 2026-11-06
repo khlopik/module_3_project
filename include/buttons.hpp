@@ -6,4 +6,4 @@ namespace buttons
     bool consumeChangeDurationRequest();
     bool consumePlayMelodyRequest();
     bool consumeResetMelodyRequest();
-} // namespace gpio
+} // namespace buttons

@@ -11,11 +11,11 @@ uint8_t Melody::getNoteCount() const
     return noteCount_;
 }
 
-void Melody::addNote(uint16_t tone, uint16_t duration)
+void Melody::addNote(uint16_t toneHz, uint16_t durationMs)
 {
     if (noteCount_ < melodyConfig::maxNotes)
     {
-        notes_[noteCount_++] = {tone, duration};
+        notes_[noteCount_++] = {toneHz, durationMs};
     }
     return;
 }
@@ -31,8 +31,8 @@ uint8_t Melody::playMelody(uint32_t currentTimeMs)
 
     uint32_t elapsedTime = currentTimeMs - lastNotePlayedMs_;
 
-    uint16_t frequency = notes_[currentNoteIndex_].tone;
-    uint16_t durationMs = notes_[currentNoteIndex_].duration;
+    uint16_t frequency = notes_[currentNoteIndex_].toneHz;
+    uint16_t durationMs = notes_[currentNoteIndex_].durationMs;
 
     // The first note played
     if (lastNotePlayedMs_ == 0)
@@ -54,8 +54,8 @@ uint8_t Melody::playMelody(uint32_t currentTimeMs)
 
         lastNotePlayedMs_ = currentTimeMs;
         elapsedTime = currentTimeMs - lastNotePlayedMs_;
-        frequency = notes_[currentNoteIndex_].tone;
-        durationMs = notes_[currentNoteIndex_].duration;
+        frequency = notes_[currentNoteIndex_].toneHz;
+        durationMs = notes_[currentNoteIndex_].durationMs;
     }
 
     const bool isPauseBetweenNotes = elapsedTime > (durationMs - melodyConfig::restBetweenNotesMs);

@@ -4,7 +4,6 @@
 #include "button_gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include "driver/rmt_tx.h"
 
 namespace
 {

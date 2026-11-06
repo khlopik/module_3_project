@@ -19,7 +19,6 @@ namespace buzzer
         channelConfig.gpio_num = buzzerConfig::pin;
         channelConfig.speed_mode = LEDC_LOW_SPEED_MODE;
         channelConfig.channel = buzzerConfig::channel;
-        // channelConfig.intr_type = LEDC_INTR_DISABLE; // ToDo: Remove if works
         channelConfig.timer_sel = buzzerConfig::timer;
         channelConfig.duty = 0;
         channelConfig.hpoint = 0;

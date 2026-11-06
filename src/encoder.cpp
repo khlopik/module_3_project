@@ -9,9 +9,9 @@ namespace
 {
     const char *TAG = "ENCODER";
 
-    pcnt_unit_handle_t pcnt_unit = NULL;
-    pcnt_channel_handle_t pcnt_channel_0 = NULL;
-    pcnt_channel_handle_t pcnt_channel_1 = NULL;
+    pcnt_unit_handle_t pcntUnit = NULL;
+    pcnt_channel_handle_t pcntChannel0 = NULL;
+    pcnt_channel_handle_t pcntChannel1 = NULL;
     portMUX_TYPE buttonMux = portMUX_INITIALIZER_UNLOCKED;
 
     volatile bool addNotePending = false;
@@ -45,45 +45,45 @@ namespace encoder
 {
     void init()
     {
-        pcnt_unit_config_t unit_config = {};
-        unit_config.high_limit = encoderConfig::highLimit;
-        unit_config.low_limit = encoderConfig::lowLimit;
-        unit_config.flags.accum_count = true;
+        pcnt_unit_config_t unitConfig = {};
+        unitConfig.high_limit = encoderConfig::highLimit;
+        unitConfig.low_limit = encoderConfig::lowLimit;
+        unitConfig.flags.accum_count = true;
 
-        ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit));
+        ESP_ERROR_CHECK(pcnt_new_unit(&unitConfig, &pcntUnit));
 
-        pcnt_chan_config_t chan_config_0 = {};
+        pcnt_chan_config_t chanConfig0 = {};
 
-        chan_config_0.edge_gpio_num = encoderConfig::pinA;
-        chan_config_0.level_gpio_num = encoderConfig::pinB;
+        chanConfig0.edge_gpio_num = encoderConfig::pinA;
+        chanConfig0.level_gpio_num = encoderConfig::pinB;
 
-        ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_0, &pcnt_channel_0));
-        ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_0,
+        ESP_ERROR_CHECK(pcnt_new_channel(pcntUnit, &chanConfig0, &pcntChannel0));
+        ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcntChannel0,
                                                      PCNT_CHANNEL_EDGE_ACTION_DECREASE,
                                                      PCNT_CHANNEL_EDGE_ACTION_INCREASE));
-        ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_0,
+        ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcntChannel0,
                                                       PCNT_CHANNEL_LEVEL_ACTION_KEEP,
                                                       PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
 
-        pcnt_chan_config_t chan_config_1 = {};
-        chan_config_1.edge_gpio_num = encoderConfig::pinB;
-        chan_config_1.level_gpio_num = encoderConfig::pinA;
+        pcnt_chan_config_t chanConfig1 = {};
+        chanConfig1.edge_gpio_num = encoderConfig::pinB;
+        chanConfig1.level_gpio_num = encoderConfig::pinA;
 
-        ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_config_1, &pcnt_channel_1));
-        ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_channel_1,
+        ESP_ERROR_CHECK(pcnt_new_channel(pcntUnit, &chanConfig1, &pcntChannel1));
+        ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcntChannel1,
                                                      PCNT_CHANNEL_EDGE_ACTION_INCREASE,
                                                      PCNT_CHANNEL_EDGE_ACTION_DECREASE));
-        ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_channel_1,
+        ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcntChannel1,
                                                       PCNT_CHANNEL_LEVEL_ACTION_KEEP,
                                                       PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
 
-        pcnt_glitch_filter_config_t filter_config = {
+        pcnt_glitch_filter_config_t filterConfig = {
             .max_glitch_ns = encoderConfig::maxGlitchNs,
         };
-        ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit, &filter_config));
-        ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit));
-        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
-        ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
+        ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcntUnit, &filterConfig));
+        ESP_ERROR_CHECK(pcnt_unit_enable(pcntUnit));
+        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcntUnit));
+        ESP_ERROR_CHECK(pcnt_unit_start(pcntUnit));
 
         ESP_LOGI(TAG, "PCNT X4 Quadrature Mode Initialized");
 
@@ -103,12 +103,12 @@ namespace encoder
     int getCount()
     {
         int value;
-        ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &value));
+        ESP_ERROR_CHECK(pcnt_unit_get_count(pcntUnit, &value));
         return value / encoderConfig::countPerDetent; // Divide by countPerDetent to get the actual count in quadrature mode
     }
 
     void reset()
     {
-        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcntUnit));
     }
 } // namespace encoder

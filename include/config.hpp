@@ -57,7 +57,13 @@ namespace buzzerConfig
     constexpr ledc_timer_t timer = LEDC_TIMER_1;
     constexpr ledc_timer_bit_t resolutionBits = LEDC_TIMER_10_BIT;
     constexpr uint32_t timerFrequencyHz = 440;
-    constexpr uint16_t dutyCycle = 512; // 50% duty cycle for square wave
+
+    constexpr uint16_t getDutyCycleByBitWidth(ledc_timer_bit_t bitWidth)
+    {
+        return (1 << bitWidth) / 2; // 50% duty cycle
+    }
+
+    constexpr uint16_t dutyCycle = getDutyCycleByBitWidth(resolutionBits);
 }
 
 namespace encoderConfig
@@ -102,8 +108,8 @@ namespace digitDisplayConfig
     constexpr uint8_t digits[] = {
         0b00111111, // 0 (A, B, C, D, E, F)
         0b00000110, // 1 (B, C)
-        0b01011011, // 2 (A, D, E, F, G)
-        0b01001111, // 3 (A, C, D, E, G)
+        0b01011011, // 2 (A, B, D, E, G)
+        0b01001111, // 3 (A, B, C, D, G)
         0b01100110, // 4 (B, C, F, G)
         0b01101101, // 5 (A, C, D, F, G)
         0b01111101, // 6 (A, C, D, E, F, G)
@@ -111,13 +117,27 @@ namespace digitDisplayConfig
         0b01111111, // 8 (A, B, C, D, E, F, G)
         0b01101111, // 9 (A, B, C, D, F, G)
     };
+    constexpr uint32_t timerResolutionHz = 1 * 1000 * 1000; // 1 MHz
     constexpr uint32_t scanIntervalUs = 10000;
 }
 
 namespace melodyConfig
 {
-    constexpr uint8_t maxNotes = 99;
+    constexpr uint8_t getMaxNotes(uint8_t digitCount)
+    {
+        uint32_t max_val = 1;
+        for (int i = 0; i < digitCount; ++i)
+        {
+            max_val *= 10;
+        }
+        max_val -= 1;
+        return static_cast<uint8_t>(max_val);
+    }
+
+    constexpr uint8_t maxNotes = getMaxNotes(digitDisplayConfig::activatorCount);
     constexpr uint16_t restBetweenNotesMs = 50;
+
+    static_assert(maxNotes <= 99, "maxNotes must be less than or equal to 99");
 }
 
 namespace toneConfig
@@ -155,9 +175,34 @@ namespace durationConfig
     };
 
     constexpr int durationCount = sizeof(durationLedConfig) / sizeof(durationLedConfig[0]);
+
+    constexpr bool checkLedCountNotExceedMax()
+    {
+        for (size_t i = 0; i < durationCount; ++i)
+        {
+            if (durationLedConfig[i].ledCount > ledConfig::ledCount)
+                return false;
+        }
+        return true;
+    };
+
+    static_assert(checkLedCountNotExceedMax(), "ledCount must be less than or equal to ledConfig::ledCount");
 }
 
 namespace superloopConfig
 {
     constexpr uint32_t yieldDelayMs = 10;
+}
+
+namespace helpers
+{
+    constexpr uint64_t getPinBitMask(const gpio_num_t *pins, size_t count)
+    {
+        uint64_t mask = 0;
+        for (size_t i = 0; i < count; ++i)
+        {
+            mask |= (1ULL << pins[i]);
+        }
+        return mask;
+    }
 }

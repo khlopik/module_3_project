@@ -21,30 +21,30 @@ namespace
         return noteIndex * servoConfig::maxAngle / (toneConfig::count - 1);
     }
 
-    enum State
+    enum class State
     {
         SelectNote,
         PreviewPlayNote,
         SaveNoteToMelody,
         PlayMelody,
-        StopMelody,
+        Idle,
     };
 
-    State currentState = SelectNote;
+    State currentState = State::SelectNote;
     Melody currentMelody;
 
     uint8_t activeDigit = 0;
-    uint8_t digitPattern[] = {
+    uint8_t digitPattern[digitDisplayConfig::activatorCount] = {
         0b00000000,
         0b00000000,
     };
 
     void setDigitsPattern(uint8_t number)
     {
-        ESP_LOGI(TAG, "Setting digits pattern for number: %d", number);
+        // ESP_LOGI(TAG, "Setting digits pattern for number: %d", number);
         const uint8_t tens = number / 10;
         const uint8_t ones = number % 10;
-        ESP_LOGI(TAG, "Setting digits pattern: %d%d", tens, ones);
+        // ESP_LOGI(TAG, "Setting digits pattern: %d%d", tens, ones);
         digitPattern[0] = digitDisplayConfig::digits[tens];
         digitPattern[1] = digitDisplayConfig::digits[ones];
     }
@@ -53,13 +53,15 @@ namespace
     {
         if (buttons::consumePlayMelodyRequest())
         {
-            if (currentState == PlayMelody)
+            if (currentState == State::PlayMelody)
             {
-                currentState = StopMelody;
+                currentState = State::Idle;
+                currentMelody.stopMelody();
+                setDigitsPattern(currentMelody.getNoteCount());
             }
             else if (currentMelody.getNoteCount() > 0)
             {
-                currentState = PlayMelody;
+                currentState = State::PlayMelody;
             }
             return;
         }
@@ -67,7 +69,7 @@ namespace
         if (buttons::consumeResetMelodyRequest())
         {
             currentMelody.clearMelody();
-            currentState = SelectNote;
+            currentState = State::SelectNote;
             currentNoteIndex = -1;
             currentDurationIndex = 0;
             leds::showDuration(currentDurationIndex);
@@ -78,7 +80,7 @@ namespace
 
         if (buttons::consumeChangeDurationRequest())
         {
-            if (currentState != SelectNote && currentState != PreviewPlayNote)
+            if (currentState != State::SelectNote && currentState != State::PreviewPlayNote)
             {
                 return;
             }
@@ -89,11 +91,11 @@ namespace
 
         if (encoder::consumeAddNoteRequest())
         {
-            if (currentState != SelectNote && currentState != PreviewPlayNote)
+            if (currentState != State::SelectNote && currentState != State::PreviewPlayNote)
             {
                 return;
             }
-            currentState = SaveNoteToMelody;
+            currentState = State::SaveNoteToMelody;
         }
     }
 
@@ -121,7 +123,7 @@ namespace
             }
 
             lastNotePlayedMs = currentTimeMs;
-            currentState = PreviewPlayNote;
+            currentState = State::PreviewPlayNote;
         }
     }
 
@@ -156,22 +158,22 @@ namespace
             const uint32_t currentTimeMs = xTaskGetTickCount() * portTICK_PERIOD_MS;
             switch (currentState)
             {
-            case SelectNote:
+            case State::SelectNote:
             {
                 handleNoteChange(currentTimeMs);
             }
             break;
-            case PreviewPlayNote:
+            case State::PreviewPlayNote:
             {
                 handleNoteChange(currentTimeMs);
                 if (currentTimeMs - lastNotePlayedMs >= durationConfig::durationLedConfig[currentDurationIndex].durationMs)
                 {
                     buzzer::stopNote();
-                    currentState = SelectNote;
+                    currentState = State::SelectNote;
                 }
             }
             break;
-            case SaveNoteToMelody:
+            case State::SaveNoteToMelody:
             {
                 buzzer::stopNote();
                 currentMelody.addNote(toneConfig::tones[currentNoteIndex], durationConfig::durationLedConfig[currentDurationIndex].durationMs);
@@ -179,25 +181,28 @@ namespace
                 currentNoteIndex = -1;
                 currentDurationIndex = 0;
                 leds::showDuration(currentDurationIndex);
-                currentState = SelectNote;
+                currentState = State::SelectNote;
                 encoder::reset();
             }
             break;
-            case PlayMelody:
+            case State::PlayMelody:
             {
                 const uint8_t notesLeft = currentMelody.playMelody(currentTimeMs);
-                setDigitsPattern(notesLeft);
+
                 if (notesLeft == 0)
                 {
-                    currentState = StopMelody;
+                    currentState = State::Idle;
+                    currentMelody.stopMelody();
+                    setDigitsPattern(currentMelody.getNoteCount());
+                }
+                else
+                {
+                    setDigitsPattern(notesLeft);
                 }
             }
             break;
-            case StopMelody:
-            {
-                currentMelody.stopMelody();
-            }
-            break;
+            case State::Idle:
+                break;
             }
 
             handleDigitsUpdate();

@@ -5,16 +5,6 @@
 
 namespace
 {
-    constexpr uint64_t getPinBitMask(const gpio_num_t *pins, size_t count)
-    {
-        uint64_t mask = 0;
-        for (size_t i = 0; i < count; ++i)
-        {
-            mask |= (1ULL << pins[i]);
-        }
-        return mask;
-    }
-
     portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
     volatile bool digitSwitchPending = false;
     gptimer_handle_t digitSwitchTimer;
@@ -30,7 +20,7 @@ namespace
     const gptimer_config_t timerConfig = {
         .clk_src = GPTIMER_CLK_SRC_DEFAULT, // Select the default clock source
         .direction = GPTIMER_COUNT_UP,
-        .resolution_hz = 1 * 1000 * 1000,
+        .resolution_hz = digitDisplayConfig::timerResolutionHz,
         .intr_priority = 0,
         .flags = {
             .intr_shared = false,
@@ -62,7 +52,7 @@ namespace digits
     void init()
     {
         gpio_config_t config = {};
-        config.pin_bit_mask = getPinBitMask(digitDisplayConfig::segmentPins, digitDisplayConfig::segmentCount);
+        config.pin_bit_mask = helpers::getPinBitMask(digitDisplayConfig::segmentPins, digitDisplayConfig::segmentCount);
         config.mode = GPIO_MODE_OUTPUT;
         config.pull_up_en = GPIO_PULLUP_DISABLE;
         config.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -70,7 +60,7 @@ namespace digits
 
         gpio_config(&config);
 
-        config.pin_bit_mask = getPinBitMask(digitDisplayConfig::activatorPins, digitDisplayConfig::activatorCount);
+        config.pin_bit_mask = helpers::getPinBitMask(digitDisplayConfig::activatorPins, digitDisplayConfig::activatorCount);
         gpio_config(&config);
 
         configTimer();

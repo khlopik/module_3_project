@@ -5,8 +5,8 @@
 
 struct Note
 {
-    uint16_t tone;
-    uint16_t duration;
+    uint16_t toneHz;
+    uint16_t durationMs;
 };
 
 class Melody
@@ -21,7 +21,7 @@ private:
 
 public:
     uint8_t getNoteCount() const;
-    void addNote(uint16_t tone, uint16_t duration);
+    void addNote(uint16_t toneHz, uint16_t durationMs);
     uint8_t playMelody(uint32_t currentTimeMs);
     void stopMelody();
     void clearMelody();
