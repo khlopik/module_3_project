@@ -59,7 +59,8 @@ namespace servoConfig
     constexpr ledc_timer_bit_t resolutionBits = LEDC_TIMER_13_BIT;
     constexpr uint32_t minPulseWidthUs = 500;
     constexpr uint32_t maxPulseWidthUs = 2500;
-    constexpr uint32_t periodUs = helpers::pow10[6] / frequencyHz;
+    constexpr uint32_t microsecondsPerSecond = 1000000;
+    constexpr uint32_t periodUs = microsecondsPerSecond / frequencyHz;
     constexpr uint16_t minAngle = 0;
     constexpr uint16_t maxAngle = 180;
 }
@@ -114,8 +115,8 @@ namespace digitDisplayConfig
         pinConfig::digitActivator1,
         pinConfig::digitActivator2,
     };
-    constexpr uint8_t activatorCount = sizeof(digitDisplayConfig::activatorPins) / sizeof(digitDisplayConfig::activatorPins[0]);
-    static_assert(activatorCount < 7, "Segments/activators count should be less than 7");
+    constexpr uint8_t digitCount = sizeof(digitDisplayConfig::activatorPins) / sizeof(digitDisplayConfig::activatorPins[0]);
+    static_assert(digitCount <= 4, "Segments/activators count should be less or equal to 4");
     constexpr int segmentActiveLevel = 0;
     constexpr int segmentInactiveLevel = 1;
     constexpr int activatorActiveLevel = 0;
@@ -138,7 +139,7 @@ namespace digitDisplayConfig
 
 namespace melodyConfig
 {
-    constexpr uint32_t maxNotes = helpers::pow10[digitDisplayConfig::activatorCount] - 1;
+    constexpr uint32_t maxNotes = helpers::pow10[digitDisplayConfig::digitCount] - 1;
     constexpr uint16_t restBetweenNotesMs = 50;
 }
 

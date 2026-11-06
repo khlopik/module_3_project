@@ -60,11 +60,12 @@ namespace digits
 
         gpio_config(&config);
 
-        config.pin_bit_mask = helpers::getPinBitMask(digitDisplayConfig::activatorPins, digitDisplayConfig::activatorCount);
+        config.pin_bit_mask = helpers::getPinBitMask(digitDisplayConfig::activatorPins, digitDisplayConfig::digitCount);
         gpio_config(&config);
 
-        configTimer();
         turnOff();
+        configTimer();
+        
     }
 
     void activateDigit(uint8_t digit)
@@ -93,7 +94,7 @@ namespace digits
 
     void turnOff()
     {
-        for (size_t i = 0; i < digitDisplayConfig::activatorCount; ++i)
+        for (size_t i = 0; i < digitDisplayConfig::digitCount; ++i)
         {
             gpio_set_level(digitDisplayConfig::activatorPins[i], digitDisplayConfig::activatorInactiveLevel);
         }

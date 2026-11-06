@@ -34,17 +34,17 @@ namespace
     Melody currentMelody;
 
     uint8_t activeDigit = 0;
-    uint8_t digitPattern[digitDisplayConfig::activatorCount] = {};
+    uint8_t digitPattern[digitDisplayConfig::digitCount] = {};
 
-    void setDigitsPattern(uint8_t number)
+    void setDigitsPattern(uint32_t number)
     {
         uint32_t rest = number;
-        for (size_t i = digitDisplayConfig::activatorCount; i > 0; --i)
+        for (size_t i = digitDisplayConfig::digitCount; i > 0; --i)
         {
             const uint32_t divider = helpers::pow10[i - 1];
             const uint8_t digit = rest / divider;
             rest %= divider;
-            digitPattern[digitDisplayConfig::activatorCount - i] = digitDisplayConfig::digits[digit];
+            digitPattern[digitDisplayConfig::digitCount - i] = digitDisplayConfig::digits[digit];
         }
     }
 
@@ -132,7 +132,7 @@ namespace
             digits::turnOff();
             digits::showSegments(digitPattern[activeDigit]);
             digits::activateDigit(activeDigit);
-            activeDigit = (activeDigit + 1) % digitDisplayConfig::activatorCount;
+            activeDigit = (activeDigit + 1) % digitDisplayConfig::digitCount;
         }
     }
 
@@ -185,7 +185,7 @@ namespace
             break;
             case State::PlayMelody:
             {
-                const uint8_t notesLeft = currentMelody.playMelody(currentTimeMs);
+                const uint32_t notesLeft = currentMelody.playMelody(currentTimeMs);
 
                 if (notesLeft == 0)
                 {
