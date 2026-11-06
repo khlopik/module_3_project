@@ -34,19 +34,18 @@ namespace
     Melody currentMelody;
 
     uint8_t activeDigit = 0;
-    uint8_t digitPattern[digitDisplayConfig::activatorCount] = {
-        0b00000000,
-        0b00000000,
-    };
+    uint8_t digitPattern[digitDisplayConfig::activatorCount] = {};
 
     void setDigitsPattern(uint8_t number)
     {
-        // ESP_LOGI(TAG, "Setting digits pattern for number: %d", number);
-        const uint8_t tens = number / 10;
-        const uint8_t ones = number % 10;
-        // ESP_LOGI(TAG, "Setting digits pattern: %d%d", tens, ones);
-        digitPattern[0] = digitDisplayConfig::digits[tens];
-        digitPattern[1] = digitDisplayConfig::digits[ones];
+        uint32_t rest = number;
+        for (size_t i = digitDisplayConfig::activatorCount; i > 0; --i)
+        {
+            const uint32_t divider = helpers::pow10[i - 1];
+            const uint8_t digit = rest / divider;
+            rest %= divider;
+            digitPattern[digitDisplayConfig::activatorCount - i] = digitDisplayConfig::digits[digit];
+        }
     }
 
     void handleButtonPress()
@@ -111,7 +110,6 @@ namespace
             currentNoteIndex = newNoteIndex;
             uint16_t frequency = toneConfig::tones[currentNoteIndex];
             uint16_t angle = getAngleForNoteIndex(currentNoteIndex);
-            ESP_LOGI(TAG, "angle: %d", angle);
             servo::setAngle(angle);
             if (frequency == toneConfig::rest)
             {

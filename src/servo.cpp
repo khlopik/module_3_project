@@ -3,10 +3,13 @@
 #include <driver/ledc.h>
 #include "esp_log.h"
 
-namespace servo
+namespace
 {
     const char *TAG = "SERVO";
+}
 
+namespace servo
+{
     void init()
     {
         ledc_timer_config_t timerConfig{};
@@ -38,6 +41,6 @@ namespace servo
         uint32_t duty = (pulseWidthUs * (1 << servoConfig::resolutionBits)) / servoConfig::periodUs;
         ledc_set_duty(LEDC_LOW_SPEED_MODE, servoConfig::channel, duty);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, servoConfig::channel);
-        ESP_LOGI(TAG, "Angle: %d° → Pulse: %d us → Duty: %d\n", angle, pulseWidthUs, duty);
+        ESP_LOGI(TAG, "Angle: %d° → Pulse: %" PRIx32 " us → Duty: %" PRIu32 "", angle, pulseWidthUs, duty);
     }
 } // namespace servo

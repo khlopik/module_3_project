@@ -4,6 +4,21 @@
 #include "driver/ledc.h"
 #include "driver/pulse_cnt.h"
 
+namespace helpers
+{
+    constexpr uint64_t getPinBitMask(const gpio_num_t *pins, size_t count)
+    {
+        uint64_t mask = 0;
+        for (size_t i = 0; i < count; ++i)
+        {
+            mask |= (1ULL << pins[i]);
+        }
+        return mask;
+    }
+
+    constexpr uint32_t pow10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
+}
+
 namespace pinConfig
 {
     constexpr gpio_num_t servo = GPIO_NUM_12;
@@ -17,13 +32,13 @@ namespace pinConfig
     constexpr gpio_num_t led2 = GPIO_NUM_17;
     constexpr gpio_num_t led3 = GPIO_NUM_18;
     constexpr gpio_num_t led4 = GPIO_NUM_8;
-    constexpr gpio_num_t digitDisplayA = GPIO_NUM_14;
-    constexpr gpio_num_t digitDisplayB = GPIO_NUM_21;
-    constexpr gpio_num_t digitDisplayC = GPIO_NUM_4;
-    constexpr gpio_num_t digitDisplayD = GPIO_NUM_7;
-    constexpr gpio_num_t digitDisplayE = GPIO_NUM_9;
-    constexpr gpio_num_t digitDisplayF = GPIO_NUM_10;
-    constexpr gpio_num_t digitDisplayG = GPIO_NUM_13;
+    constexpr gpio_num_t digitSegmentA = GPIO_NUM_14;
+    constexpr gpio_num_t digitSegmentB = GPIO_NUM_21;
+    constexpr gpio_num_t digitSegmentC = GPIO_NUM_4;
+    constexpr gpio_num_t digitSegmentD = GPIO_NUM_7;
+    constexpr gpio_num_t digitSegmentE = GPIO_NUM_9;
+    constexpr gpio_num_t digitSegmentF = GPIO_NUM_10;
+    constexpr gpio_num_t digitSegmentG = GPIO_NUM_13;
     constexpr gpio_num_t digitActivator1 = GPIO_NUM_1;
     constexpr gpio_num_t digitActivator2 = GPIO_NUM_2;
 }
@@ -44,10 +59,9 @@ namespace servoConfig
     constexpr ledc_timer_bit_t resolutionBits = LEDC_TIMER_13_BIT;
     constexpr uint32_t minPulseWidthUs = 500;
     constexpr uint32_t maxPulseWidthUs = 2500;
-    constexpr uint32_t periodUs = 20000;
+    constexpr uint32_t periodUs = helpers::pow10[6] / frequencyHz;
     constexpr uint16_t minAngle = 0;
     constexpr uint16_t maxAngle = 180;
-
 }
 
 namespace buzzerConfig
@@ -78,7 +92,7 @@ namespace encoderConfig
 
 namespace ledConfig
 {
-    constexpr gpio_num_t pins[4] = {pinConfig::led1, pinConfig::led2, pinConfig::led3, pinConfig::led4};
+    constexpr gpio_num_t pins[] = {pinConfig::led1, pinConfig::led2, pinConfig::led3, pinConfig::led4};
     constexpr uint8_t ledCount = sizeof(pins) / sizeof(pins[0]);
     constexpr uint32_t pinActiveLevel = 1;
     constexpr uint32_t pinInactiveLevel = 0;
@@ -87,13 +101,13 @@ namespace ledConfig
 namespace digitDisplayConfig
 {
     constexpr gpio_num_t segmentPins[] = {
-        pinConfig::digitDisplayA, // 0b00000001
-        pinConfig::digitDisplayB, // 0b00000010
-        pinConfig::digitDisplayC, // 0b00000100
-        pinConfig::digitDisplayD, // 0b00001000
-        pinConfig::digitDisplayE, // 0b00010000
-        pinConfig::digitDisplayF, // 0b00100000
-        pinConfig::digitDisplayG, // 0b01000000
+        pinConfig::digitSegmentA, // 0b00000001
+        pinConfig::digitSegmentB, // 0b00000010
+        pinConfig::digitSegmentC, // 0b00000100
+        pinConfig::digitSegmentD, // 0b00001000
+        pinConfig::digitSegmentE, // 0b00010000
+        pinConfig::digitSegmentF, // 0b00100000
+        pinConfig::digitSegmentG, // 0b01000000
     };
     constexpr uint8_t segmentCount = sizeof(digitDisplayConfig::segmentPins) / sizeof(digitDisplayConfig::segmentPins[0]);
     constexpr gpio_num_t activatorPins[] = {
@@ -101,6 +115,7 @@ namespace digitDisplayConfig
         pinConfig::digitActivator2,
     };
     constexpr uint8_t activatorCount = sizeof(digitDisplayConfig::activatorPins) / sizeof(digitDisplayConfig::activatorPins[0]);
+    static_assert(activatorCount < 7, "Segments/activators count should be less than 7");
     constexpr int segmentActiveLevel = 0;
     constexpr int segmentInactiveLevel = 1;
     constexpr int activatorActiveLevel = 0;
@@ -123,21 +138,8 @@ namespace digitDisplayConfig
 
 namespace melodyConfig
 {
-    constexpr uint8_t getMaxNotes(uint8_t digitCount)
-    {
-        uint32_t max_val = 1;
-        for (int i = 0; i < digitCount; ++i)
-        {
-            max_val *= 10;
-        }
-        max_val -= 1;
-        return static_cast<uint8_t>(max_val);
-    }
-
-    constexpr uint8_t maxNotes = getMaxNotes(digitDisplayConfig::activatorCount);
+    constexpr uint32_t maxNotes = helpers::pow10[digitDisplayConfig::activatorCount] - 1;
     constexpr uint16_t restBetweenNotesMs = 50;
-
-    static_assert(maxNotes <= 99, "maxNotes must be less than or equal to 99");
 }
 
 namespace toneConfig
@@ -184,7 +186,7 @@ namespace durationConfig
                 return false;
         }
         return true;
-    };
+    }
 
     static_assert(checkLedCountNotExceedMax(), "ledCount must be less than or equal to ledConfig::ledCount");
 }
@@ -192,17 +194,4 @@ namespace durationConfig
 namespace superloopConfig
 {
     constexpr uint32_t yieldDelayMs = 10;
-}
-
-namespace helpers
-{
-    constexpr uint64_t getPinBitMask(const gpio_num_t *pins, size_t count)
-    {
-        uint64_t mask = 0;
-        for (size_t i = 0; i < count; ++i)
-        {
-            mask |= (1ULL << pins[i]);
-        }
-        return mask;
-    }
 }

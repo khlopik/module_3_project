@@ -1,12 +1,12 @@
 #include "melody.hpp"
 #include "buzzer.hpp"
 
-uint8_t Melody::getNotesLeftToPlay() const
+uint32_t Melody::getNotesLeftToPlay() const
 {
     return noteCount_ - currentNoteIndex_; // Return the number of notes left to play
 }
 
-uint8_t Melody::getNoteCount() const
+uint32_t Melody::getNoteCount() const
 {
     return noteCount_;
 }
@@ -17,10 +17,9 @@ void Melody::addNote(uint16_t toneHz, uint16_t durationMs)
     {
         notes_[noteCount_++] = {toneHz, durationMs};
     }
-    return;
 }
 
-uint8_t Melody::playMelody(uint32_t currentTimeMs)
+uint32_t Melody::playMelody(uint32_t currentTimeMs)
 {
     if (currentNoteIndex_ >= noteCount_)
     {
